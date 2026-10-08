@@ -329,3 +329,10 @@ A Beatriz pediu: **toda atualização nova vai para o link dos amigos**. Depois 
 - Temas novos: Cápsulas (vitrines de vidro), Livro (fundo azul), Resultado (moldura dourada, `.lose` cinza-azulado).
 - Ícones de habilidade novos: `SK2` com 'fogo' pronto; faltam os outros 17 tipos + suporte (lotes sk_* no manifest).
 - Pendentes de arte: costas das 45 Megas, versões menina dos trajes Fantasma/Esqueleto.
+
+## v8.4 (08/10/2026)
+- Monstros: o Livro (dexdata) ficou só com as 113 famílias escolhidas pela dona (296 formas, incl. Megas), via página "Seleção de Monstros" (artifact XjyqXjnZM11YtDpkCbgC3S, doc picks/escolha). Backup pré-corte no scratchpad. SAVE_VERSION 12: monstros cortados somem e devolvem ouro/Poções/Cartas Raras/Frutas (save.cutRefund → popup "Monstros reorganizados"); fragmentos deles viram ouro.
+- Combate: retratos da Ordem enquadrados pelo contorno da arte (artBox/faceC); seta do alvo verde/vermelha/branca conforme vantagem (advOf).
+- Mega: monstro precisa de Nv 60 (MEGA_REQ.lv); BOSS Global (Megas da Provação) só com treinador Nv 60 (MEGA_TRAINER_LV).
+- Trilha da região (openTrail), Evento laranja, Bolsa com detalhe/Usar, jogadores reais na cidade, todos os ícones SK2 prontos.
+- Adiado pela dona: costas das Megas e cidade 3D.
