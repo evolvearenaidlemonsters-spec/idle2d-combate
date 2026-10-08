@@ -1263,8 +1263,8 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 /* funções bloqueadas por nível */
 #city .cbtn.flock i img{filter:grayscale(1) brightness(.55)}
 #city .cbtn.flock{color:#9ab}
-#city .cbtn .flk{position:absolute;left:50%;top:26px;transform:translateX(-50%);font:400 14px 'Lilita One',var(--font);font-style:normal;color:#fff;background:#0a1830d8;border:1px solid #4a6a92;border-radius:6px;padding:0 5px;white-space:nowrap}
-#city .cbtn .fnew{position:absolute;left:50%;top:-6px;transform:translateX(-50%);font:400 14px 'Lilita One',var(--font);font-style:normal;color:#fff;background:linear-gradient(#ff7a3a,#d8341a);border:1px solid #ffd25a;border-radius:6px;padding:0 5px;white-space:nowrap;animation:fnewP 1s ease-in-out infinite alternate}
+#city .cbtn .flk{position:absolute;left:50%;top:30px;transform:translateX(-50%);font:400 12px 'Lilita One',var(--font);font-style:normal;color:#fff;background:#0a1830d8;border:1px solid #4a6a92;border-radius:6px;padding:0 5px;white-space:nowrap}
+#city .cbtn .fnew{position:absolute;right:-2px;left:auto;top:-4px;transform:none;font:400 11px 'Lilita One',var(--font);font-style:normal;color:#fff;background:linear-gradient(#ff7a3a,#d8341a);border:1px solid #ffd25a;border-radius:6px;padding:0 3px;line-height:14px;white-space:nowrap;animation:fnewP 1s ease-in-out infinite alternate}
 @keyframes fnewP{to{transform:translateX(-50%) scale(1.12)}}
 /* Opções */
 #opt .optBox{width:min(620px,92%);max-height:92%;overflow:auto;position:relative;text-align:left;font-size:15px}
@@ -1294,6 +1294,18 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #res.lose .box{box-shadow:inset 0 0 0 3px #8aa6c8,inset 0 0 50px #4a6a9233!important}
 #res.lose #resTitle{background:linear-gradient(#e8f0ff,#9ab4d8 55%,#5a7aa8);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 3px 0 #1a2a48)}
 #res #stars svg{filter:drop-shadow(0 0 8px #ffcf5a)}
+/* sem fundo azul nos ícones (pedido 08/10) */
+#tl .round{background:none!important;border:0!important;box-shadow:none!important;font:400 26px 'Lilita One',var(--font)!important;color:#fff!important;text-shadow:0 0 3px #000,0 2px 0 #08304e,0 0 10px #4fd8ffcc!important}
+#tl .round.small{font-size:22px!important}
+#tl #autoBtn[aria-pressed=true]{background:none!important;color:#ffd23d!important;text-shadow:0 0 3px #000,0 2px 0 #7a4200,0 0 12px #ffc23d!important}
+#items>div{background:none!important;border:0!important;box-shadow:none!important;text-shadow:0 0 3px #000,0 1px 2px #000}
+#cbMore{background:none!important;border:0!important;box-shadow:none!important}
+#cbMore i{font-size:52px!important;text-shadow:0 0 4px #000,0 3px 0 #0a3a6a,0 0 12px #4fd8ffcc!important}
+#opt{display:block!important}#opt[hidden]{display:none!important}
+#opt .optBox{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;margin:0!important;width:600px!important;max-width:92%!important;max-height:94%!important}
+#opt .row{justify-content:center!important}#opt section{text-align:center}#opt h3{text-align:center}
+#cbOpt .devic{width:44px!important;height:44px!important;font-size:38px!important;line-height:44px}
+#opt button:not(.big):not(.round){padding:7px 20px;font:400 16px 'Lilita One',var(--font);color:#fff;border:0;clip-path:var(--tk-cut);background:linear-gradient(#3aa0e8,#145aa0 60%,#0c3a78);text-shadow:0 2px 0 #08304e;cursor:pointer}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -2817,18 +2829,18 @@ const IS_PUBLIC = /workers\.dev$|pages\.dev$/.test(location.hostname); // site d
 const IS_DESK = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const DESK_ZOOMS = [.62, .7, .78, .86, .94, 1];
 let deskZoom = 2; try{ const v = localStorage.getItem('idle2d.zoom'), z = +v; if(v!==null && z>=0 && z<DESK_ZOOMS.length) deskZoom = z; }catch(e){}
-const deskMode = () => false; // 08/10: no computador o jogo volta a ocupar a tela toda (sem moldura nem zoom)
+const deskMode = () => IS_DESK; // computador: moldura fina, o jogo ocupa ~95% da tela
 function setDeskZoom(d){ deskZoom = Math.max(0, Math.min(DESK_ZOOMS.length-1, deskZoom + d)); try{ localStorage.setItem('idle2d.zoom', deskZoom); }catch(e){} fit(); }
 function fit(){
   let s = Math.min(innerWidth/W, (innerHeight - (innerHeight>innerWidth?40:0))/H);
   const desk = deskMode(); document.body.classList.toggle('desk', desk);
-  if(desk) s = Math.min(s, Math.max(1, s*DESK_ZOOMS[deskZoom]), 1.6);
+  if(desk) s = Math.min(innerWidth/(W+28), innerHeight/(H+28));
   wrap.style.transform = `translate(-50%,-50%) scale(${s})`;
   K = Math.min(3, Math.max(1, s*(devicePixelRatio||1)));
   cv.width = W*K; cv.height = H*K; bg = null;
 }
 addEventListener('resize', fit);
-addEventListener('keydown', e=>{ if(!deskMode() || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; if(e.key===']') setDeskZoom(1); if(e.key==='[') setDeskZoom(-1); });
+addEventListener('keydown', e=>{ if(true || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; if(e.key===']') setDeskZoom(1); if(e.key==='[') setDeskZoom(-1); });
 if(false){ const z = document.createElement('div'); z.id = 'zoomCtl'; z.innerHTML = '<button aria-label="Diminuir o jogo" title="Diminuir ( [ )">−</button><span>Zoom</span><button aria-label="Aumentar o jogo" title="Aumentar ( ] )">+</button>'; document.body.append(z);
   z.children[0].onclick = ()=>setDeskZoom(-1); z.children[2].onclick = ()=>setDeskZoom(1); }
 fit();
@@ -4137,7 +4149,7 @@ function missions(){
   return out.slice(0,5);
 }
 function renderCityHud(){
-  const now = Date.now(), av = $('cAvatar'); av.textContent=''; const c = document.createElement('canvas'); c.width=c.height=120; const g = c.getContext('2d'); if(!drawSprite(g, heroKey(0), 60, 150, 190, false, {noShadow:true})) drawTrainer(g,60,170,{}); g.setTransform(1,0,0,1,0,0); av.append(c); av.insertAdjacentHTML('beforeend', `<b>${save.trainer.lv}</b>`);
+  const now = Date.now(), av = $('cAvatar'); av.textContent=''; const c = document.createElement('canvas'); c.width=c.height=120; const g = c.getContext('2d'); if(!drawSprite(g, heroKey(0), 60, 236, 236, false, {noShadow:true})) drawTrainer(g,60,170,{}); g.setTransform(1,0,0,1,0,0); av.append(c); av.insertAdjacentHTML('beforeend', `<b>${save.trainer.lv}</b>`);
   // retrato da montaria (atalho) com aviso quando dá para treinar
   { const mb = $('cMount'), cv = mb.querySelector('canvas'), gg = cv.getContext('2d'), m = save.mount; gg.clearRect(0,0,120,120);
     const mi = m && m.cur && mountArt(m.cur, m.skin); if(mi){ const h = 92, w = mi.naturalWidth*h/mi.naturalHeight; gg.drawImage(mi, 60-w/2, 108-h, w, h); } else { gg.globalAlpha = .5; const ic = new Image(); ic.src = 'ui/n_4.png'; if(ic.complete) gg.drawImage(ic, 22, 22, 76, 76); else ic.onload = ()=>gg.drawImage(ic, 22, 22, 76, 76); gg.globalAlpha = 1; }
