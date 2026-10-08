@@ -318,3 +318,14 @@ Pedido da Beatriz: HUD mais bonito em todo o jogo seguindo 16 prints de referên
 
 ## Regra fixa (08/10): publicar sempre
 A Beatriz pediu: **toda atualização nova vai para o link dos amigos**. Depois de testar (`node test_engine.js`) e republicar o artifact, rodar `sh tools/publicar.sh "o que mudou"` na pasta do projeto (precisa do repo evolvearenaidlemonsters-spec/idle2d-combate anexado à sessão com acesso de escrita). Conferir abrindo https://idle2d.idle2d.workers.dev.
+
+## v8.3 (08/10/2026)
+- PC em tela cheia sem moldura (`deskMode = () => false`).
+- Funções liberam por nível do treinador (`FEAT_LV`, selo 🔒 Nv X / NOVO!), missões respeitam isso.
+- Fontes mínimas: tudo que era ≤13px virou 14px (selos ≤10px viraram 12px).
+- Arte sob demanda no site: `tools/split_art.py` gera `art/i/<chave>.webp` + `art/i/keys.js`; `ART_LAZY` (site público ou `?lazy`) usa Proxy em `MONIMG` e baixa cada imagem só quando aparece. Rodar split_art.py sempre que mexer nos packs.
+- Supabase (projeto `idle2d`, id miblsgpxqlgsmoksttgy, sa-east-1): tabelas accounts/saves/rankings/reports (RLS sem políticas), acesso só por funções RPC: acc_create, acc_login, save_put(7 args), save_get, rank_list, report_add. Cliente: `CLOUD` (localStorage idle2d.cloud), `cloudPush` automático (até 1×/min e ao sair da aba), tela Opções (⚙ na cidade) com conta, som e Relatar problema. Ranking ganhou aba "Jogadores Reais".
+- Som leve sintetizado (`SOUND`, `sfx`), começa desligado (localStorage idle2d.snd).
+- Temas novos: Cápsulas (vitrines de vidro), Livro (fundo azul), Resultado (moldura dourada, `.lose` cinza-azulado).
+- Ícones de habilidade novos: `SK2` com 'fogo' pronto; faltam os outros 17 tipos + suporte (lotes sk_* no manifest).
+- Pendentes de arte: costas das 45 Megas, versões menina dos trajes Fantasma/Esqueleto.
