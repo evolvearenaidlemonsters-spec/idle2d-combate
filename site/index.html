@@ -1319,6 +1319,15 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #cMission h4{background:none!important;box-shadow:none!important;text-shadow:0 0 4px #000,0 2px 0 #08345a!important}
 #cMission #cMisList button{background:#00000059!important;border:0!important;border-left:3px solid #ffd25a!important;box-shadow:none!important;text-shadow:0 1px 2px #000,0 0 3px #000}
 #cbMore,#cbMore i{background:none!important;border:0!important;box-shadow:none!important}
+/* Trilha da região */
+#rmap{z-index:6;background:#0a1830}#rmcv{position:absolute;inset:0;width:100%;height:100%}
+#rmHit{position:absolute;inset:0}.rmNode{position:absolute;width:160px;height:200px;background:none;border:0;cursor:pointer;padding:0}
+#rmHead{position:absolute;left:0;right:0;top:8px;text-align:center;pointer-events:none}
+#rmName{margin:0;font:400 28px 'Lilita One',var(--font);color:#fff;text-shadow:0 3px 0 #08345a,0 0 12px #4fd8ff}
+#rmStars b{display:inline-block;margin-top:2px;font:400 18px 'Lilita One',var(--font);color:#ffd25a;text-shadow:0 2px 0 #6a3800,0 0 6px #000}
+#rmBack{position:absolute;right:10px;top:8px}
+#rmModes{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:10px}
+#rmModes .mode{min-width:150px}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -1350,6 +1359,12 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
     <div id="modes"><button class="mode on" id="modeN">Comum</button><button class="mode elite" id="modeE">Elite</button><button class="mode nm" id="modeP">Pesadelo</button></div>
   </div>
 
+  <div id="rmap" class="screen" hidden>
+    <canvas id="rmcv" aria-label="Trilha da região"></canvas><div id="rmHit"></div>
+    <div id="rmHead"><h2 id="rmName"></h2><div id="rmStars"></div></div>
+    <button class="round small scrBack" id="rmBack" aria-label="Voltar ao mapa">✕</button>
+    <div id="rmModes"><button class="mode" data-m="n">Comum</button><button class="mode elite" data-m="e">Elite</button><button class="mode nm" data-m="p">Pesadelo</button></div>
+  </div>
   <div class="ov" id="rp" hidden>
     <div id="rpWrap">
       <aside id="rpList">
@@ -3622,7 +3637,7 @@ $('teamBtn').onclick = ()=>{ if(STAGES[curStage] && STAGES[curStage].bglobal){ $
   if(STAGES[curStage] && STAGES[curStage].weekly){ $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; showCity(); openProv(); return openWeekly(); }
   if(STAGES[curStage] && STAGES[curStage].expl){ $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; showMap(); if(fromCity) showCity(); return openExpl(STAGES[curStage].room); }
   if(curStage==='arena'){ $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; showMap(); if(fromCity) showCity(); return openArena('desafiar'); }
-  $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; setMode(STAGES[curStage].elite); showMap(); openRegion(riOf(curStage), curStage); };
+  $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; setMode(STAGES[curStage].elite); showMap(); { const ri = riOf(curStage); if(ri!=null && ri!=='D' || STAGES[curStage].dungeon) openTrail(STAGES[curStage].dungeon ? 'D' : ri); } openRegion(riOf(curStage), curStage); };
 $('teamOpen').onclick = $('rpTeam').onclick = ()=>{ team = save.team.filter(sp=>save.owned[sp]); buildCards(); $('sel').hidden=false; };
 
 // ===== Tela de Monstros (nível, intimidade, habilidades, transformação) =====
@@ -4735,16 +4750,77 @@ mcv.addEventListener('click', e=>{
   const n = NODES.find(n=>Math.hypot((x-n.x)/1.5, y-n.y) < 100); if(!n) return;
   if(n.key==='cidade') return showCity();
   if(n.region==null) return toast('Esta região chega em uma próxima atualização.');
-  if(n.region==='D') return regionOpen('D') ? openRegion('D') : toast('A Dungeon abre ao vencer a Caverna Ecoante 5.');
+  if(n.region==='D') return regionOpen('D') ? openTrail('D') : toast('A Dungeon abre ao vencer a Caverna Ecoante 5.');
   if(!regionOpen(n.region)) return toast(elite==='p' ? `O Pesadelo desta região abre ao vencer ${REGIONS[n.region].name} 1 na Elite.` : elite ? `A Elite desta região abre ao vencer ${REGIONS[n.region].name} 1 na Comum.` : `Vença ${REGIONS[n.region-1].name} 5 para liberar.`);
-  openRegion(n.region);
+  openTrail(n.region);
 });
 function setMode(e){ elite = e; $('modeN').classList.toggle('on',!e); $('modeE').classList.toggle('on',e===true); $('modeP').classList.toggle('on',e==='p'); renderMap(); }
 $('modeP').onclick = ()=>{ if(!cleared(save,'praia-e1')) return toast('O Pesadelo abre ao vencer a Praia das Conchas 1 na Elite.'); setMode('p'); };
 const modeName = e => e==='p' ? ' · Pesadelo' : e ? ' · Elite' : '';
 $('modeN').onclick = ()=> setMode(false);
 $('modeE').onclick = ()=> setMode(true);
-$('rpClose').onclick = ()=>{ $('rp').hidden=true; renderMap(); };
+$('rpClose').onclick = ()=>{ $('rp').hidden=true; renderMap(); if(!$('rmap').hidden) renderTrail(); };
+// ===== Trilha da região (referência: mapa com ilhas e trilha pontilhada vermelha) =====
+const RM_POS = [[150,330],[335,215],[540,320],[740,205],[930,300]];
+let rmRegion = null, rmRaf = 0;
+function openTrail(ri){ rmRegion = ri; $('rmap').hidden = false; storyRegion && storyRegion(ri); renderTrail(); if(!rmRaf) rmRaf = requestAnimationFrame(trailFrame); }
+function closeTrail(){ $('rmap').hidden = true; rmRegion = null; cancelAnimationFrame(rmRaf); rmRaf = 0; renderMap(); }
+function trailFrame(t){ if($('rmap').hidden){ rmRaf = 0; return; } drawTrail(t); rmRaf = requestAnimationFrame(trailFrame); }
+function trailNodes(){ const ri = rmRegion, r = regionOf(ri), isD = ri==='D';
+  return r.stages.map((_,i)=>{ const id = sid(r,i,isD?false:elite), st = STAGES[id], ok = unlocked(save,id), rec = save.stages[id]||{};
+    const w = st.waves.at(-1).map(parseFoe), lead = (w.find(f=>SPECIES[f.sp]&&SPECIES[f.sp].boss) || w.find(f=>f.sub) || w[0]).sp;
+    const [x,y] = RM_POS[i] || [150+i*190, 300]; return {i, id, ok, best:rec.best||0, won:!!rec.clears, lead, boss:!!(SPECIES[lead]&&SPECIES[lead].boss), x, y}; }); }
+function renderTrail(){ const ri = rmRegion, r = regionOf(ri), isD = ri==='D';
+  $('rmName').textContent = r.name + (isD ? '' : modeName(elite));
+  const got = regionStars(save,r,isD?false:elite), max = r.stages.length*4; $('rmStars').innerHTML = `<b>★ ${got}/${max}</b>`;
+  $('rmModes').hidden = isD; [...$('rmModes').children].forEach(b=>b.classList.toggle('on', (b.dataset.m==='n'&&!elite)||(b.dataset.m==='e'&&elite===true)||(b.dataset.m==='p'&&elite==='p')));
+  const hit = $('rmHit'); hit.textContent = '';
+  for(const n of trailNodes()){ const b = document.createElement('button'); b.className = 'rmNode'; b.style.left = (n.x-80)+'px'; b.style.top = (n.y-120)+'px'; b.setAttribute('aria-label', `Instância ${n.i+1}`);
+    b.onclick = ()=>{ if(!n.ok) return toast(elite ? 'Para liberar: vença a mesma instância na Comum e a Elite anterior.' : 'Vença a instância anterior primeiro.'); openRegion(ri, n.id); }; hit.append(b); }
+}
+function drawTrail(t){ const c = $('rmcv'), g = c.getContext('2d'); if(c.width !== W*K){ c.width = W*K; c.height = H*K; } g.setTransform(K,0,0,K,0,0);
+  const ri = rmRegion, r = regionOf(ri), key = ri==='D' ? 'dungeon' : r.id, bgi = BG_IMGS[key] || BG_IMGS.arena;
+  g.fillStyle = '#0a1830'; g.fillRect(0,0,W,H);
+  if(bgi && bgi.complete && bgi.naturalWidth){ const s = Math.max(W/bgi.naturalWidth, H/bgi.naturalHeight); g.globalAlpha = .55; g.drawImage(bgi, (W-bgi.naturalWidth*s)/2, (H-bgi.naturalHeight*s)/2, bgi.naturalWidth*s, bgi.naturalHeight*s); g.globalAlpha = 1; }
+  let q = g.createLinearGradient(0,0,0,H); q.addColorStop(0,'#06142ccc'); q.addColorStop(.25,'#06142c33'); q.addColorStop(.75,'#06142c33'); q.addColorStop(1,'#06142cdd'); g.fillStyle = q; g.fillRect(0,0,W,H);
+  // névoa/nuvens suaves
+  for(let k=0;k<6;k++){ const cx = ((k*211 + t*0.008*(k%2?1:-1)) % (W+300)) - 150, cy = 120 + (k*73)%300; const rg = g.createRadialGradient(cx,cy,10,cx,cy,140); rg.addColorStop(0,'#ffffff22'); rg.addColorStop(1,'#ffffff00'); g.fillStyle = rg; g.fillRect(cx-140,cy-140,280,280); }
+  const N = trailNodes(), isl = ISL[key];
+  // trilha pontilhada vermelha entre as ilhas
+  g.lineCap = 'round';
+  for(let i=0;i<N.length-1;i++){ const a = N[i], b = N[i+1], mx = (a.x+b.x)/2, my = Math.min(a.y,b.y) - 40 + (i%2?60:0);
+    g.setLineDash([]); g.strokeStyle = '#00000066'; g.lineWidth = 9; g.beginPath(); g.moveTo(a.x,a.y+6); g.quadraticCurveTo(mx,my+6,b.x,b.y+6); g.stroke();
+    g.setLineDash([14,10]); g.lineDashOffset = -t*0.03; g.strokeStyle = b.ok ? '#ff4a3a' : '#7a5a5a'; g.lineWidth = 6; g.beginPath(); g.moveTo(a.x,a.y); g.quadraticCurveTo(mx,my,b.x,b.y); g.stroke(); }
+  g.setLineDash([]);
+  const cur = N.filter(n=>n.ok).at(-1);
+  for(const n of N){ const bob = Math.sin(t/700 + n.i)*4, sc = n.boss ? 1.12 : .9 + (n.i%2)*.06;
+    g.save(); if(!n.ok) g.filter = 'grayscale(1) brightness(.55)';
+    // ilha
+    if(isl && isl.complete && isl.naturalWidth){ const w = 190*sc, h = isl.naturalHeight*w/isl.naturalWidth; g.drawImage(isl, n.x-w/2, n.y-h*.42+bob, w, h); }
+    else { g.fillStyle = '#5a8a3a'; g.beginPath(); g.ellipse(n.x, n.y+bob, 80*sc, 28*sc, 0, 0, 7); g.fill(); }
+    // brilho na base de quem é a próxima
+    if(n===cur){ const rg = g.createRadialGradient(n.x,n.y-10+bob,5,n.x,n.y-10+bob,90); rg.addColorStop(0,'#ffe78a66'); rg.addColorStop(1,'#ffe78a00'); g.fillStyle = rg; g.fillRect(n.x-90,n.y-100+bob,180,180); }
+    drawCreature(g, n.lead, n.x, n.y-18+bob, n.boss ? 1.05 : .78, -1, {box:[120,110]});
+    g.restore();
+    // placa de estrelas / cadeado
+    const py = n.y-118+bob; g.fillStyle = '#081a36dd'; g.strokeStyle = n.ok ? '#ffd25a' : '#6a7a92'; g.lineWidth = 2;
+    g.beginPath(); g.roundRect(n.x-44, py-14, 88, 26, 6); g.fill(); g.stroke();
+    g.font = "400 16px 'Lilita One',sans-serif"; g.textAlign = 'center'; g.textBaseline = 'middle';
+    if(n.ok){ for(let k=0;k<4;k++){ g.fillStyle = k<n.best ? '#ffc23d' : '#3a4a62'; g.fillText('★', n.x-27+k*18, py); } }
+    else { g.fillStyle = '#c8d4e8'; g.fillText('🔒 Bloqueada', n.x, py); }
+    // nome
+    g.font = "400 17px 'Lilita One',sans-serif"; g.lineWidth = 4; g.strokeStyle = '#04122a'; const lb = (ri==='D'?'Andar ':'Instância ')+(n.i+1)+(n.boss?' · Chefe':'');
+    g.strokeText(lb, n.x, n.y+62+bob); g.fillStyle = n.ok ? '#fff' : '#9aa8bc'; g.fillText(lb, n.x, n.y+62+bob);
+    if(n===cur){ const ay = n.y-150 + Math.sin(t/220)*7; g.fillStyle = '#ffd23d'; g.strokeStyle = '#7a4200'; g.lineWidth = 2; g.beginPath(); g.moveTo(n.x-12,ay-12); g.lineTo(n.x+12,ay-12); g.lineTo(n.x,ay+4); g.closePath(); g.fill(); g.stroke(); }
+  }
+  if(cur) trainerAt(g, cur.x+58, cur.y+18, 1.05);
+}
+$('rmBack').onclick = closeTrail;
+$('rmModes').onclick = e=>{ const b = e.target.closest('button'); if(!b) return; const m = b.dataset.m;
+  if(m==='p' && !cleared(save,'praia-e1')) return toast('O Pesadelo abre ao vencer a Praia das Conchas 1 na Elite.');
+  const nm = m==='n' ? false : m==='e' ? true : 'p'; if(nm && !regionOpen(rmRegion, nm)) { /* checa abaixo */ }
+  setMode(nm); if(!regionOpen(rmRegion)){ toast(nm==='p' ? 'O Pesadelo desta região ainda está bloqueado.' : 'A Elite desta região ainda está bloqueada.'); setMode(false); } renderTrail(); };
+
 
 const wavePower = (w, id) => w.reduce((a,e,i)=>a+power(foeUnit(id, e, i)),0);
 const recPower = id => Math.round(Math.max(...STAGES[id].waves.map(w=>wavePower(w, id)))*1.25);
