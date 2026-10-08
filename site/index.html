@@ -224,8 +224,8 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #cAvatar canvas{width:100%;height:100%}#cAvatar b{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);background:#0c2533;border:2px solid var(--edge);border-radius:999px;padding:0 7px;font-size:14px}
 #cRes{display:flex;gap:6px;margin-top:6px;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
 .cbtn{width:74px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;font-weight:800;font-size:14px;text-shadow:0 1px 2px #000,0 0 4px #000}
-.cbtn i img{width:58px;height:58px;object-fit:contain}.cbtn i:has(img){border:0;background:none;box-shadow:none}
-.cbtn i{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:22px;border:3px solid #9fe8ff;background:radial-gradient(circle at 40% 35%,#3a9ad8,#12406a);box-shadow:0 2px 6px #0008}
+.cbtn i img{width:58px;height:58px;object-fit:contain}
+.cbtn i{width:50px;height:50px;display:grid;place-items:center;font-style:normal;font-size:22px;border:0;background:none;box-shadow:none}
 #cLeft{position:absolute;left:8px;top:96px;display:flex;flex-direction:column;gap:8px}
 #cRight{position:absolute;right:8px;top:8px;display:flex;gap:6px}
 #cBottom{position:absolute;right:8px;bottom:8px;display:flex;gap:6px}
@@ -1081,7 +1081,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 /* ícones soltos: sem círculo, nome com contorno */
 #city .cbtn{width:auto;min-width:62px;gap:0;font:400 14px 'Lilita One',var(--font);color:#fff;letter-spacing:.2px;
   text-shadow:-1px -1px 0 #0a2a4a,1px -1px 0 #0a2a4a,-1px 1px 0 #0a2a4a,1px 1px 0 #0a2a4a,0 2px 3px #000!important;pointer-events:auto}
-#city .cbtn i,#city .cbtn i:has(img){width:56px!important;height:52px!important;border:0!important;background:none!important;box-shadow:none!important;border-radius:0}
+#city .cbtn i{width:56px!important;height:52px!important;border:0!important;background:none!important;box-shadow:none!important;border-radius:0}
 #city .cbtn i img{width:56px!important;height:56px!important;object-fit:contain;filter:drop-shadow(0 3px 3px #0009);transition:transform .15s}
 #city .cbtn:hover i img{transform:translateY(-2px) scale(1.06)}
 #city .cbtn.sm{min-width:54px;font-size:14px}#city .cbtn.sm i{width:44px!important;height:42px!important}#city .cbtn.sm i img{width:44px!important;height:44px!important}
@@ -1107,7 +1107,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #cDockBar{display:flex;align-items:flex-end;gap:2px;padding:0 6px 0 0;pointer-events:auto;background:none;transition:transform .25s,opacity .25s;transform-origin:right center}
 #cDock.shut #cDockBar{transform:scaleX(0);opacity:0;pointer-events:none}
 #cDockBar .cbtn{min-width:62px!important}
-#cDockBar .cbtn i,#cDockBar .cbtn i:has(img){width:54px!important;height:52px!important}
+#cDockBar .cbtn i{width:54px!important;height:52px!important}
 #cDockBar .cbtn i img{width:56px!important;height:56px!important}
 #cbMore{position:relative;z-index:2;width:66px;height:66px;border-radius:50%;padding:0;pointer-events:auto;border:4px solid #d8f2ff;background:radial-gradient(circle at 45% 35%,#7fe8ff,#1a7ac0 60%,#0a3a70);
   box-shadow:0 0 0 3px #0c4a86,0 0 0 5px #06142c,0 4px 12px #000a,inset 0 -6px 0 #0a3a6a}
@@ -1200,7 +1200,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .pfoot2{display:flex;justify-content:center;margin-top:10px}.pfoot2 .big{padding:8px 40px}
 #profLeft .trj{display:grid;grid-template-columns:1fr 1fr;gap:6px}#profLeft .trj button{display:flex;flex-direction:column;align-items:center;padding:4px;border:0;clip-path:var(--tk-cut);background:linear-gradient(#174a7c,#0b2850);box-shadow:inset 0 0 0 2px #2f8ac0;color:#fff}#profLeft .trj button.on{box-shadow:inset 0 0 0 3px #ffd27a,0 0 10px #ffd27a88}#profLeft .trj canvas{width:110px;height:110px}#profLeft .trj b{font:400 14px 'Lilita One',var(--font)}#profLeft .trj small{font-size:14px;color:#ffe27a}
 /* ===== Tema v8 — janelas, instância, batalha ===== */
-#wrap .box,#rpop .pp,#rpop .pp:has(.evt){background:var(--tk-panel)!important;border:2px solid #3fc4f0!important;border-radius:3px!important;box-shadow:0 0 0 2px #06142c,0 0 22px #2ab8ff55,inset 0 0 30px #3fc4f01f!important}
+#wrap .box,#rpop .pp{background:var(--tk-panel)!important;border:2px solid #3fc4f0!important;border-radius:3px!important;box-shadow:0 0 0 2px #06142c,0 0 22px #2ab8ff55,inset 0 0 30px #3fc4f01f!important}
 #rpop .rib{background:linear-gradient(#2fa8e8,#1468b0)!important;border:0!important;border-radius:0!important;clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 100%,0 100%);box-shadow:inset 0 2px 0 #9fefff!important;color:#fff!important;text-shadow:0 2px 0 #06244a;padding:3px 30px!important}
 #rpop h2{color:#e8f8ff!important;text-shadow:0 0 10px #4fd8ff,0 2px 0 #041a36!important}
 .ov{background:#020a18d8!important}
@@ -1306,6 +1306,19 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #opt .row{justify-content:center!important}#opt section{text-align:center}#opt h3{text-align:center}
 #cbOpt .devic{width:44px!important;height:44px!important;font-size:38px!important;line-height:44px}
 #opt button:not(.big):not(.round){padding:7px 20px;font:400 16px 'Lilita One',var(--font);color:#fff;border:0;clip-path:var(--tk-cut);background:linear-gradient(#3aa0e8,#145aa0 60%,#0c3a78);text-shadow:0 2px 0 #08304e;cursor:pointer}
+/* HUD da cidade: só ícones, sem círculos nem fundos azuis (pedido 08/10) */
+#city .cbtn i,#city .cbtn i img{background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+#cAvatar{border:0!important;background:none!important;box-shadow:none!important;border-radius:0!important;overflow:visible!important}
+#cAvatar canvas{border-radius:0!important;filter:drop-shadow(0 2px 3px #000a)}
+#cAvatar b{background:none!important;border:0!important;text-shadow:0 0 3px #000,0 2px 2px #000}
+#cMount{border:0!important;background:none!important;box-shadow:none!important;border-radius:0!important}
+#cMount canvas{border-radius:0!important;filter:drop-shadow(0 2px 3px #000a)}
+#cMount span{background:none!important;border:0!important;text-shadow:0 0 3px #000,0 2px 2px #000}
+#cRes .pill{background:none!important;border:0!important;box-shadow:none!important;clip-path:none!important;text-shadow:0 0 3px #000,0 2px 2px #000;padding:0 6px!important}
+#cMission{background:none!important;border:0!important;box-shadow:none!important}
+#cMission h4{background:none!important;box-shadow:none!important;text-shadow:0 0 4px #000,0 2px 0 #08345a!important}
+#cMission #cMisList button{background:#00000059!important;border:0!important;border-left:3px solid #ffd25a!important;box-shadow:none!important;text-shadow:0 1px 2px #000,0 0 3px #000}
+#cbMore,#cbMore i{background:none!important;border:0!important;box-shadow:none!important}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -3407,7 +3420,7 @@ function glyph(g, t){ // símbolos brancos em caixa 100x100, centro (50,50)
 // arte pintada (sk/<tipo>_<phys|spec|aoe>.png, sk/heal|buff|debuff.png); sem o arquivo, usa o ícone desenhado
 const SK_SLUG = {Normal:'normal',Fogo:'fogo','Água':'agua',Planta:'planta','Elétrico':'eletrico',Gelo:'gelo',Batalha:'batalha',Venenoso:'venenoso',Terra:'terra',Pedra:'pedra',Voador:'voador',Inseto:'inseto',Fantasma:'fantasma','Psíquico':'psiquico','Dragão':'dragao',Fada:'fada',Noturno:'noturno','Metálico':'metalico'};
 // ícones v2: 3 variações por tipo e categoria (sk2/<tipo>_<phys|spec|aoe>_<1-3>.png, sk2/<heal|buff|debuff>_<1-3>.png); a variação sai do nome da habilidade
-const SK2 = new Set(['fogo','agua','planta','eletrico']); // preenchido com os tipos que já têm a arte nova
+const SK2 = new Set(['fogo','agua','planta','eletrico','gelo']); // preenchido com os tipos que já têm a arte nova
 const skHash = s => { let h = 7; for(const c of String(s)) h = (h*31 + c.charCodeAt(0)) >>> 0; return h; };
 const skArtKey = sk => { const sup = ['heal','buff','debuff'].includes(sk.kind), slug = SK_SLUG[sk.type]||'normal', cat = sup ? sk.kind : `${slug}_${sk.aoe?'aoe':sk.kind==='phys'?'phys':'spec'}`;
   return SK2.has(sup ? 'sup' : slug) ? `../sk2/${cat}_${1 + skHash(sk.name) % 3}` : cat; };
