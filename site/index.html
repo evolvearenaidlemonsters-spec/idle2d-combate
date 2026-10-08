@@ -1328,6 +1328,14 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #rmBack{position:absolute;right:10px;top:8px}
 #rmModes{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:flex;gap:10px}
 #rmModes .mode{min-width:150px}
+/* Evento: janela laranja (referência do vídeo) */
+.evt{background:linear-gradient(160deg,#e07a2a,#a8461a 60%,#6a2a0a);border:3px solid #ffd25a;border-radius:6px;padding:10px;box-shadow:inset 0 0 0 2px #7a3008,0 6px 20px #0008}
+.evt .er{background:linear-gradient(#fff4e2,#ffe2bc)!important;color:#5a2a08!important;border:2px solid #ffb35a;border-radius:4px!important}
+.evt .er b{color:#5a2a08!important;text-shadow:none!important}.evt .er .ep{color:#a8461a}
+.evt p,.evt>small,.evt>div:not(.er){color:#fff;text-shadow:0 1px 2px #5a1a00}
+#rpop .pp.evtp{background:linear-gradient(160deg,#f08a3a,#b8501a 55%,#7a300c)!important;border:3px solid #ffd25a!important;box-shadow:0 0 0 2px #5a2008,0 10px 30px #000c!important}
+#rpop .pp.evtp h2,#rpop .pp.evtp .rib{color:#fff!important;text-shadow:0 3px 0 #7a3008!important}
+#rpop .pp.evtp .evt{background:none;border:0;box-shadow:none;padding:0}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -3077,7 +3085,11 @@ function render(ts){
     const v = vis(u), [x0,y0] = posOf(u), sc=scaleOf(u), kb=(v.kb||0)*(v.kb||0), sink = v.dt>320 ? (v.dt-320)/520*22 : 0, x=x0+v.dx+(v.kbx||0)*kb, y=y0+v.dy+(v.kby||0)*kb+sink, ent = v.ent??1;
     if(ent<=0) continue;
     if(v.hp<=0 && v.alpha<=0) continue;
-    if(u===cur){ ctx.save(); ctx.translate(x0,y0); ctx.scale(1,.42); ctx.strokeStyle='#39d7ff'; ctx.lineWidth=6; ctx.shadowColor='#39d7ff'; ctx.shadowBlur=12; ctx.beginPath(); for(let i=0;i<6;i++){ const a=i*Math.PI/3; ctx.lineTo(Math.cos(a)*48*sc,Math.sin(a)*48*sc);} ctx.closePath(); ctx.stroke(); ctx.restore(); }
+    if(u===cur){ const tt = performance.now(), col = u.side==='A' ? '#39d7ff' : '#ff5a4a', R0 = 52*sc; ctx.save(); ctx.translate(x0,y0); ctx.scale(1,.42);
+      const rg = ctx.createRadialGradient(0,0,4,0,0,R0); rg.addColorStop(0,col+'00'); rg.addColorStop(.7,col+'33'); rg.addColorStop(1,col+'88'); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(0,0,R0,0,7); ctx.fill();
+      ctx.shadowColor = col; ctx.shadowBlur = 14; ctx.strokeStyle = col; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(0,0,R0,0,7); ctx.stroke();
+      ctx.rotate(tt/900); ctx.setLineDash([16*sc,12*sc]); ctx.lineWidth = 4; ctx.strokeStyle = '#ffffffcc'; ctx.beginPath(); ctx.arc(0,0,R0*.78,0,7); ctx.stroke();
+      ctx.rotate(-tt/450); ctx.setLineDash([]); ctx.lineWidth = 3; for(let i=0;i<3;i++){ const a = i*Math.PI*2/3; ctx.beginPath(); ctx.arc(0,0,R0*1.12,a,a+.6); ctx.stroke(); } ctx.restore(); }
     if(pending && u.side==='A' && u.hp>0){ ctx.save(); ctx.translate(x0,y0); ctx.scale(1,.42); ctx.strokeStyle='#ffc23d'; ctx.lineWidth=4; ctx.setLineDash([8,6]); ctx.beginPath(); ctx.arc(0,0,44,0,7); ctx.stroke(); ctx.restore(); }
     drawCreature(ctx, u.sp, x, y, sc*(ent<1?Math.max(.05,easeBack(ent)):1), u.side==='A'?1:-1, {noShadow:ent<1, box:[130*sc*(ent<1?Math.max(.05,easeBack(ent)):1),110*sc*(ent<1?Math.max(.05,easeBack(ent)):1)], form:u.form, back:u.side==='A', bob: reduce?0:Math.sin(ts/380+u.slot*1.7+(u.side==='E'?2:0))*2, flash:v.flash>0 && !(v.dt>120), dark:v.dt>120 ? Math.min(1,(v.dt-120)/200) : 0, alpha:v.alpha});
     // barra de vida
@@ -3149,7 +3161,7 @@ function float(x,y,txt,color,size=28,kind='txt'){ floaters.push({x,y,txt,color,s
 const DMG_STYLE = { super:{tag:'Super!', top:'#e6f7ff', bot:'#59b8ff', edge:'#0b2a48'}, inef:{tag:'Inefetivo', top:'#ffd2d2', bot:'#e0505a', edge:'#4a0d14'},
   imune:{tag:'Imune', top:'#e0e0e0', bot:'#8a8a9a', edge:'#202028'}, crit:{tag:'Crítico', top:'#ffc0b0', bot:'#e01a2a', edge:'#3a0006'},
   '':{tag:'', top:'#ffffff', bot:'#ffe08a', edge:'#3a1a06'}, ally:{tag:'', top:'#ffd0b0', bot:'#ff4a3a', edge:'#4a0a06'}, heal:{tag:'', top:'#e8ffd8', bot:'#4fe06a', edge:'#0a3a12'} };
-function dmgFloat(x, y, n, kind, side, big){ const k = kind==='heal' ? 'heal' : kind || (side==='A' ? 'ally' : ''); floaters.push({x, y, txt:(kind==='heal'?'+ ':'- ')+String(n).split('').join(' '), tag:DMG_STYLE[k].tag, st:DMG_STYLE[k], size: big?58:40, life:1300, kind:'dmg'}); }
+function dmgFloat(x, y, n, kind, side, big){ const k = kind==='heal' ? 'heal' : kind || (side==='A' ? 'ally' : ''); floaters.push({x, y, txt:(kind==='heal'?'+ ':'- ')+String(n).split('').join(' '), tag:DMG_STYLE[k].tag, st:DMG_STYLE[k], size: big?68:48, life:1300, kind:'dmg'}); }
 function drawFloater(f){
   const age = 1300-f.life, pop = age<120 ? 1.7-0.7*age/120 : 1, a = Math.min(1, f.life/350);
   ctx.save(); ctx.globalAlpha = a; ctx.translate(f.x, f.y); ctx.scale(pop, pop); ctx.transform(1,0,-.12,1,0,0); ctx.textBaseline='middle'; ctx.lineJoin='round';
@@ -3385,11 +3397,19 @@ function updateTop(){
   $('wave').textContent = `Ondas: ${B.wave+1}/${STAGES[B.stage].waves.length}`; $('wave').hidden = curStage==='arena';
   const ord = $('order'); ord.textContent='';
   const list = anim ? [anim.ev.actor, ...preview(B,5)] : preview(B,6);
-  list.forEach((u,i)=>{ const d=document.createElement('div'); d.className='ord '+u.side+(i===0?' cur':''); d.append(portraitC(u.sp, u.side==='A'?1:-1, u.form)); if(i===0){ const s=document.createElement('span'); s.textContent=u.side==='A'?'Eu':'Inimigo'; d.append(s); } ord.append(d); });
+  list.forEach((u,i)=>{ const d=document.createElement('div'); d.className='ord '+u.side+(i===0?' cur':''); d.append(faceC(u.sp, u.side==='A'?1:-1, u.form)); if(i===0){ const s=document.createElement('span'); s.textContent=u.side==='A'?'Eu':'Inimigo'; d.append(s); } ord.append(d); });
 }
 const PC = {};
 function portraitC(sp, face, form=0){ // cópia de um retrato em cache (a Ordem redesenha a cada ação)
   const k = sp+'|'+face+'|'+form; let src = PC[k]; if(!src || !src._ok){ src = PC[k] = portrait(sp, face, form); src._ok = !!monImg((artOf(sp,form)||{}).id); }
+  const c = document.createElement('canvas'); c.width = c.height = 120; c.getContext('2d').drawImage(src,0,0); return c; }
+const FC = {};
+function faceC(sp, face, form=0){ // rosto (parte de cima do monstro, ampliada) para a barra de Ordem
+  const k = sp+'|'+face+'|'+form; let src = FC[k];
+  if(!src || !src._ok){ src = FC[k] = document.createElement('canvas'); src.width = src.height = 120; const g = src.getContext('2d');
+    const A = artOf(sp, form), im = A && monImg(A.id); src._ok = !!im;
+    if(im){ const w = im.naturalWidth, h = im.naturalHeight, side = Math.min(w, h*.62), sx = (w-side)/2, sy = h*.04; g.save(); if(face<0){ g.translate(120,0); g.scale(-1,1); } g.drawImage(im, sx, sy, side, side, 0, 0, 120, 120); g.restore(); }
+    else g.drawImage(portrait(sp, face, form), 0, 0); }
   const c = document.createElement('canvas'); c.width = c.height = 120; c.getContext('2d').drawImage(src,0,0); return c; }
 function portrait(sp, face, form=0){
   const c = document.createElement('canvas'); c.width=c.height=120;
@@ -3435,7 +3455,7 @@ function glyph(g, t){ // símbolos brancos em caixa 100x100, centro (50,50)
 // arte pintada (sk/<tipo>_<phys|spec|aoe>.png, sk/heal|buff|debuff.png); sem o arquivo, usa o ícone desenhado
 const SK_SLUG = {Normal:'normal',Fogo:'fogo','Água':'agua',Planta:'planta','Elétrico':'eletrico',Gelo:'gelo',Batalha:'batalha',Venenoso:'venenoso',Terra:'terra',Pedra:'pedra',Voador:'voador',Inseto:'inseto',Fantasma:'fantasma','Psíquico':'psiquico','Dragão':'dragao',Fada:'fada',Noturno:'noturno','Metálico':'metalico'};
 // ícones v2: 3 variações por tipo e categoria (sk2/<tipo>_<phys|spec|aoe>_<1-3>.png, sk2/<heal|buff|debuff>_<1-3>.png); a variação sai do nome da habilidade
-const SK2 = new Set(['fogo','agua','planta','eletrico','gelo']); // preenchido com os tipos que já têm a arte nova
+const SK2 = new Set(['fogo','agua','planta','eletrico','gelo','batalha','venenoso']); // preenchido com os tipos que já têm a arte nova
 const skHash = s => { let h = 7; for(const c of String(s)) h = (h*31 + c.charCodeAt(0)) >>> 0; return h; };
 const skArtKey = sk => { const sup = ['heal','buff','debuff'].includes(sk.kind), slug = SK_SLUG[sk.type]||'normal', cat = sup ? sk.kind : `${slug}_${sk.aoe?'aoe':sk.kind==='phys'?'phys':'spec'}`;
   return SK2.has(sup ? 'sup' : slug) ? `../sk2/${cat}_${1 + skHash(sk.name) % 3}` : cat; };
@@ -4076,7 +4096,7 @@ function renderCity(ts){
   for(const b of BUILDINGS){ items.push({y:b.y+b.h, d:()=>drawBuilding(g,b)}); items.push({y:b.npc.y, d:()=>{ CS(g,b.npc.x,b.npc.y,()=>drawTrainer(g,b.npc.x,b.npc.y,{hair:b.npc.hair, shirt:b.npc.shirt, face:-1, sprite:`npc_${BUILDINGS.indexOf(b)}`})); label(g,b.npc.x,b.npc.y-95,b.npc.name,'#ffd25a'); }}); }
   for(const tr of TREES) items.push({y:tr.y, d:()=>drawTree(g,tr)});
   for(const p of PLAZA_DECO) items.push({y:p.y, d:()=>drawProp(g,p.k,p.x,p.y,p.h,.2)});
-  for(const w of WANDER){ items.push({y:w.y, d:()=>{ CS(g,w.x,w.y,()=>drawTrainer(g,w.x,w.y,{shirt:w.shirt,cap:w.cap,hair:w.hair,face:w.face,step:w.walk?Math.sin(w.walk/90)*6:0, sprite:`tr_${WANDER.indexOf(w)%6}`})); label(g,w.x,w.y-95,w.name,'#bff4ff'); if(w.sayT>0) bubble(g, w.x, w.y-112, w.say); }});
+  for(const w of WANDER){ items.push({y:w.y, d:()=>{ CS(g,w.x,w.y,()=>drawTrainer(g,w.x,w.y,{shirt:w.shirt,cap:w.cap,hair:w.hair,face:w.face,step:w.walk?Math.sin(w.walk/90)*6:0, sprite:`tr_${WANDER.indexOf(w)%6}`})); label(g,w.x,w.y-95,w.name,w.real?'#ffd25a':'#bff4ff'); if(w.sayT>0) bubble(g, w.x, w.y-112, w.say); }});
     items.push({y:w.py, d:()=>{ drawCreature(g,w.sp,w.px,w.py,.64,w.face,{form:w.form}); }}); }
   const sp0 = save.team[0], o0 = save.owned[sp0];
   items.push({y:me.y, d:()=>{ CS(g,me.x,me.y,()=>drawRider(g,me.x,me.y,{face:me.face, step:me.walk?Math.sin(me.walk/90)*6:0, mount:save.mount&&save.mount.cur})); label(g,me.x,me.y-95,'Você','#7fe0ff'); }});
@@ -4087,7 +4107,7 @@ function renderCity(ts){
 ccv.addEventListener('pointerdown', e=>{
   const r = ccv.getBoundingClientRect(), x = (e.clientX-r.left)*W/r.width/CZ + cam.x, y = (e.clientY-r.top)*H/r.height/CZ + cam.y;
   const w = WANDER.find(w=>Math.abs(x-w.x)<24 && y<w.y+6 && y>w.y-110);
-  if(w) return toast(`${w.name} · Poder ${w.power} · treinador da Arena (multiplayer em breve)`);
+  if(w) return toast(w.real ? `${w.name} · jogador real · Poder ${w.power} · Nv ${w.lv}` : `${w.name} · Poder ${w.power} · treinador da Arena`);
   const b = BUILDINGS.find(b=>(x>b.x&&x<b.x+b.w&&y>b.y+b.h-b.tall-46&&y<b.y+b.h) || Math.hypot(x-b.npc.x,y-(b.npc.y-50))<45);
   if(b){ me.tx = b.npc.x + (b.npc.x>me.x?-50:50); me.ty = b.npc.y + 30; if(blocked(me.tx,me.ty)) me.ty += 30; me.after = b.id; return; }
   me.tx = x; me.ty = y; me.after = null;
@@ -5012,7 +5032,7 @@ const evtProg = e => { const d = dailyS(); return e.k==='all' ? EVT.filter(x=>x.
 const evtReady = () => EVT.filter(e=>evtProg(e)>=e.n && !dailyS().got[e.k]).length;
 function openEvt(){ const d = dailyS(), mid = new Date(); mid.setHours(24,0,0,0);
   popSeq([{rib:'Evento do Dia', title:'Desafio Diário', btn:'Fechar', html:`<div class="evt">${EVT.map(e=>{ const p = evtProg(e), ok = p>=e.n, got = d.got[e.k]; return `<div class="er${got?' got':ok?' ready':''}"><b>${e.t}</b><span class="ep">${p}/${e.n}</span><span class="erw">${rwTxt(e.rw)}</span>${got?'<span class="okk">✔</span>':ok?`<button class="big sm" data-e="${e.k}">Coletar</button>`:'<span class="okk" style="opacity:.5">—</span>'}</div>`; }).join('')}</div><p style="margin:6px 0 0;font-size:14px;color:#ffe0b0">Renova em ${hm(mid-Date.now())}.</p><p style="margin:4px 0 0;font-size:14px;color:#cfe8ff">Eventos com Fragmento Universal: <b>Desafio Semanal</b> (Provação, até 10 por semana) · tarefas acima e Login (dia 6) · marcos: cada região da Elite completa (+${ELITE_MILE}) e cada rank novo da Exploração. Fim de semana: uma região com VIT pela metade e fragmentos em dobro${weekendRegion(Date.now())?` — agora: <b>${REGIONS.find(r=>r.id===weekendRegion(Date.now())).name}</b>`:''}.</p>`,
-    after:(P)=>{ P.querySelectorAll('[data-e]').forEach(b=>b.onclick = ()=>{ const e = EVT.find(x=>x.k===b.dataset.e); if(d.got[e.k] || evtProg(e)<e.n) return; d.got[e.k] = 1; const R = e.rw; if(R.gold) save.gold += R.gold; if(R.dia) save.diamonds = (save.diamonds||0)+R.dia; if(R.item) give(save, R.item, R.qty); persist(); sfx('chest'); $('rpop').hidden = true; openEvt(); if(!$('city').hidden) renderCityHud(); }); }}]); }
+    after:(P)=>{ P.querySelector('.pp')?.classList.add('evtp'); P.querySelectorAll('[data-e]').forEach(b=>b.onclick = ()=>{ const e = EVT.find(x=>x.k===b.dataset.e); if(d.got[e.k] || evtProg(e)<e.n) return; d.got[e.k] = 1; const R = e.rw; if(R.gold) save.gold += R.gold; if(R.dia) save.diamonds = (save.diamonds||0)+R.dia; if(R.item) give(save, R.item, R.qty); persist(); sfx('chest'); $('rpop').hidden = true; openEvt(); if(!$('city').hidden) renderCityHud(); }); }}]); }
 // ===== Fragmentos (layout do vídeo): cada criatura tem os seus; Invocar quando completar. Universais completam o que faltar =====
 let fragSel = null, fragPage = 0, fragType = '';
 const FRAG_PER = 6;
@@ -5147,7 +5167,11 @@ async function cloudPush(force){ if(!CLOUD.token || cloudBusy) return; cloudBusy
   cloudBusy = false; if(!$('opt').hidden) renderOpt(); }
 function cloudSoon(){ if(!CLOUD.token) return; clearTimeout(cloudT); cloudT = setTimeout(cloudPush, Date.now()-cloudAt > 60000 ? 4000 : 60000); }
 addEventListener('visibilitychange', ()=>{ if(document.hidden && CLOUD.token) cloudPush(); });
-async function loadOnlineRank(){ try{ ONLINE_RANK = await rpc('rank_list'); }catch(e){ ONLINE_RANK = []; toast('Ranking online indisponível agora.'); } if(!$('rank').hidden) renderRank(); }
+async function loadOnlineRank(quiet){ try{ ONLINE_RANK = await rpc('rank_list'); }catch(e){ ONLINE_RANK = []; if(!quiet) toast('Ranking online indisponível agora.'); } if(!$('rank').hidden) renderRank(); realWalkers(); }
+function realWalkers(){ // jogadores reais da nuvem passeiam pela cidade com o monstro líder
+  const R = (ONLINE_RANK||[]).filter(o=>o.nick!==CLOUD.nick).slice(0, WANDER.length);
+  R.forEach((o,i)=>{ const w = WANDER[i]; w.name = o.nick; w.real = true; w.power = o.power; w.lv = o.lv; if(SPECIES[o.lead]){ w.sp = o.lead; w.form = o.lead_form||0; } }); }
+setTimeout(()=>loadOnlineRank(true), 3000);
 function useSave(data){ persistOff = true; try{ localStorage.setItem(SAVE_KEY, JSON.stringify(data)); }catch(e){} location.reload(); }
 async function cloudEnter(create){ const nick = $('optNick').value.trim(), pass = $('optPass').value;
   if(nick.length<3 || pass.length<4) return toast('Nick com 3+ letras e senha com 4+ caracteres.');
