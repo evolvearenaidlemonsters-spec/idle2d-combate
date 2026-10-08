@@ -1336,6 +1336,11 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #rpop .pp.evtp{background:linear-gradient(160deg,#f08a3a,#b8501a 55%,#7a300c)!important;border:3px solid #ffd25a!important;box-shadow:0 0 0 2px #5a2008,0 10px 30px #000c!important}
 #rpop .pp.evtp h2,#rpop .pp.evtp .rib{color:#fff!important;text-shadow:0 3px 0 #7a3008!important}
 #rpop .pp.evtp .evt{background:none;border:0;box-shadow:none;padding:0}
+/* Bolsa: detalhe do item (referência) */
+#bagInfo .biHead{display:flex;gap:12px;align-items:center;margin-bottom:6px}#bagInfo .biIco{width:72px;height:72px;display:grid;place-items:center;border:2px solid #ffd25a;background:radial-gradient(#2a6aa0,#0a2446);clip-path:var(--tk-cut)}
+#bagInfo .biIco .icoL{width:58px!important;height:58px!important}#bagInfo h3{margin:0}#bagInfo .biHead small{color:#9fc4e0}
+#bagInfo .biFrom{margin-top:8px;padding:6px 8px;background:#0a2446aa;border-left:3px solid #4fd8ff}#bagInfo .biFrom b{display:block;color:#ffd25a}
+#bagInfo .biAct{margin-top:10px;text-align:center}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -3455,7 +3460,7 @@ function glyph(g, t){ // símbolos brancos em caixa 100x100, centro (50,50)
 // arte pintada (sk/<tipo>_<phys|spec|aoe>.png, sk/heal|buff|debuff.png); sem o arquivo, usa o ícone desenhado
 const SK_SLUG = {Normal:'normal',Fogo:'fogo','Água':'agua',Planta:'planta','Elétrico':'eletrico',Gelo:'gelo',Batalha:'batalha',Venenoso:'venenoso',Terra:'terra',Pedra:'pedra',Voador:'voador',Inseto:'inseto',Fantasma:'fantasma','Psíquico':'psiquico','Dragão':'dragao',Fada:'fada',Noturno:'noturno','Metálico':'metalico'};
 // ícones v2: 3 variações por tipo e categoria (sk2/<tipo>_<phys|spec|aoe>_<1-3>.png, sk2/<heal|buff|debuff>_<1-3>.png); a variação sai do nome da habilidade
-const SK2 = new Set(['fogo','agua','planta','eletrico','gelo','batalha','venenoso']); // preenchido com os tipos que já têm a arte nova
+const SK2 = new Set(['fogo','agua','planta','eletrico','gelo','batalha','venenoso','terra','pedra','voador']); // preenchido com os tipos que já têm a arte nova
 const skHash = s => { let h = 7; for(const c of String(s)) h = (h*31 + c.charCodeAt(0)) >>> 0; return h; };
 const skArtKey = sk => { const sup = ['heal','buff','debuff'].includes(sk.kind), slug = SK_SLUG[sk.type]||'normal', cat = sup ? sk.kind : `${slug}_${sk.aoe?'aoe':sk.kind==='phys'?'phys':'spec'}`;
   return SK2.has(sup ? 'sup' : slug) ? `../sk2/${cat}_${1 + skHash(sk.name) % 3}` : cat; };
@@ -5271,7 +5276,11 @@ function renderBag(){
   I.innerHTML = '<p>Toque num item para ver o que ele faz e onde conseguir.</p>';
   if(bagTab==='itens'){
     const list = Object.entries(save.items).filter(([k,n])=>n>0 && ITEMS[k]);
-    for(const [k,n] of list){ const it = ITEMS[k]; cell(`${ico(k,'icoL')}<b>${n}</b>`, k, `<h3>${it.name} ×${n}</h3><p>${it.desc||''}</p><p><small>Onde conseguir: ${it.from||'—'}</small></p>`); }
+    if(!bagSel && list.length) bagSel = list[0][0];
+    const USE = {pocaoXP:['Usar no Pool de XP',()=>{ $('bag').hidden=true; openMon(save.team[0]); }], fruta:['Dar a um monstro',()=>{ $('bag').hidden=true; openMon(save.team[0]); monTab='int'; renderMon(); }], feno:['Alimentar montaria',()=>{ $('bag').hidden=true; openMnt(); }],
+      cartaFus:['Usar na Fusão',()=>{ $('bag').hidden=true; openMon(save.team[0]); monTab='fus'; renderMon(); }], evoC:['Evoluir monstro',()=>{ $('bag').hidden=true; openMon(save.team[0]); monTab='evo'; renderMon(); }], evoR:['Evoluir monstro',()=>{ $('bag').hidden=true; openMon(save.team[0]); monTab='evo'; renderMon(); }], evoE:['Evoluir monstro',()=>{ $('bag').hidden=true; openMon(save.team[0]); monTab='evo'; renderMon(); }]};
+    for(const [k,n] of list){ const it = ITEMS[k]; cell(`${ico(k,'icoL')}<b>${n}</b>`, k, `<div class="biHead"><span class="biIco">${ico(k,'icoL')}</span><div><h3>${it.name}</h3><small>Possui: ${n}</small></div></div><p>${it.desc||''}</p><div class="biFrom"><b>Como obter</b><span>${it.from||'—'}</span></div>${USE[k]?`<div class="biAct"><button class="big" id="biUse">${USE[k][0]}</button></div>`:''}`); }
+    const ub = $('biUse'); if(ub && USE[bagSel]) ub.onclick = USE[bagSel][1];
     if(!list.length) I.innerHTML = '<p>Bolsa vazia. Itens chegam das instâncias, lojas e Cápsulas.</p>';
   } else if(bagTab==='gear'){
     for(const g of save.gear){ const k = 'g'+g.id; cell(`<i style="background:${GEAR[g.kind].color}"></i>${g.plus?`<b>+${g.plus}</b>`:''}`, k, `<h3>${GEAR[g.kind].name}${g.plus?' +'+g.plus:''}</h3><p>${GEAR[g.kind].desc} (ativa em +${GEAR_EFF_AT})</p><p>${statTxt(gearStats(g).st)}</p><p><small>Equipe pela tela Monstros › Equip. Dropa nas instâncias (Elite com mais chance).</small></p>`); }
