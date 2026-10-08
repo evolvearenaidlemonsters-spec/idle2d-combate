@@ -26,7 +26,8 @@ Dona do projeto: Beatriz. Conversa em português do Brasil.
 - **Artifact (versão de desenvolvimento):** https://claude.ai/artifact/JFdLWTPJkUdoHzVQKxkKkL (republicado em 08/10 na conta nova evolvearenaidlemonsters, a partir da v21; os links antigos TRMKVrsozR9zKEZBwc8a4o e Nr1vAYvt5BAdZiZVaN2xyc são de contas anteriores). De outra conversa, dá para atualizar esse mesmo link passando a URL para a ferramenta de Artifact (ler antes, depois publicar com `url`).
   - Publicar só a página: o artifact já contém as pastas de arte; ao republicar, mandar só o `combate.html` (os arquivos que não forem enviados são mantidos).
   - Limite do artifact: 511 arquivos no total e 255 por publicação — por isso a arte de criaturas fica empacotada em `art/pack_*.js`.
-- **Site para amigos testarem: Netlify** (deploy manual arrastando a pasta). Funcionou em 07/10.
+- **Site para amigos testarem (desde 08/10): https://idle2d.idle2d.workers.dev** — Worker `idle2d` no Cloudflare (conta evolvearenaidlemonsters) que serve a pasta `site/` do repositório GitHub **evolvearenaidlemonsters-spec/idle2d-combate** (lê de raw.githubusercontent, cache de 60 s no HTML e 1 dia nas imagens). Para atualizar: copiar `combate.html` para `site/index.html` (com `id="devBtn" hidden`) e a arte para `site/`, commit e push na `main`. O repositório também guarda `dev/` (combate.html com Dev, testes, ferramentas, docs). Push funciona pelo proxy do Claude (app Claude instalado no repo). O shell não alcança o Cloudflare; mudanças no Worker são feitas pela ferramenta do Cloudflare (API).
+- Netlify (antigo, deploy manual) não é mais usado.
   - Para atualizar: gerar o pacote do site (abaixo), ela descompacta e arrasta a pasta em **Deploys** no Netlify.
   - GitHub/Cloudflare automático foi descartado: o repositório `leomirafake-bot/idle2d` está numa conta ligada ao ChatGPT, sem acesso daqui.
 - **Como gerar o pacote do site (só quando ela pedir):**
