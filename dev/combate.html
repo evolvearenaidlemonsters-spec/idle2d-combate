@@ -3460,7 +3460,7 @@ function glyph(g, t){ // símbolos brancos em caixa 100x100, centro (50,50)
 // arte pintada (sk/<tipo>_<phys|spec|aoe>.png, sk/heal|buff|debuff.png); sem o arquivo, usa o ícone desenhado
 const SK_SLUG = {Normal:'normal',Fogo:'fogo','Água':'agua',Planta:'planta','Elétrico':'eletrico',Gelo:'gelo',Batalha:'batalha',Venenoso:'venenoso',Terra:'terra',Pedra:'pedra',Voador:'voador',Inseto:'inseto',Fantasma:'fantasma','Psíquico':'psiquico','Dragão':'dragao',Fada:'fada',Noturno:'noturno','Metálico':'metalico'};
 // ícones v2: 3 variações por tipo e categoria (sk2/<tipo>_<phys|spec|aoe>_<1-3>.png, sk2/<heal|buff|debuff>_<1-3>.png); a variação sai do nome da habilidade
-const SK2 = new Set(['fogo','agua','planta','eletrico','gelo','batalha','venenoso','terra','pedra','voador']); // preenchido com os tipos que já têm a arte nova
+const SK2 = new Set(['fogo','agua','planta','eletrico','gelo','batalha','venenoso','terra','pedra','voador','inseto','fantasma','psiquico','dragao','fada','noturno','metalico','normal','sup']); // preenchido com os tipos que já têm a arte nova
 const skHash = s => { let h = 7; for(const c of String(s)) h = (h*31 + c.charCodeAt(0)) >>> 0; return h; };
 const skArtKey = sk => { const sup = ['heal','buff','debuff'].includes(sk.kind), slug = SK_SLUG[sk.type]||'normal', cat = sup ? sk.kind : `${slug}_${sk.aoe?'aoe':sk.kind==='phys'?'phys':'spec'}`;
   return SK2.has(sup ? 'sup' : slug) ? `../sk2/${cat}_${1 + skHash(sk.name) % 3}` : cat; };
