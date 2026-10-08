@@ -1241,6 +1241,24 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #monHead .lv{border:0!important;border-radius:0!important;clip-path:var(--tk-cut);background:linear-gradient(#a8b8c8,#6a7a90)!important}
 #monHead .pw{background:linear-gradient(90deg,#000a,#0000)!important;padding:2px 30px 2px 12px!important}
 #monHead .pw b{font-size:36px!important;font-style:italic;letter-spacing:6px!important}
+
+/* ===== Computador: palco menor e centralizado sobre um fundo de hexágonos ===== */
+body.desk{background:radial-gradient(ellipse at 50% 45%,#16305a 0%,#0a1630 55%,#040a18 100%);}
+body.desk::before{content:"";position:fixed;inset:0;background:var(--tk-hexb);opacity:.9;pointer-events:none}
+body.desk #wrap{border-radius:10px;box-shadow:0 0 0 2px #3fc4f0,0 0 0 6px #06142c,0 0 60px #2ab8ff55,0 20px 60px #000c}
+#zoomCtl{display:none}
+body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-items:center;gap:6px;z-index:50;font:600 13px system-ui,sans-serif;color:#9fd8f0}
+#zoomCtl button{width:32px;height:32px;border-radius:50%;border:2px solid #3fc4f0;background:#0b2850;color:#fff;font:700 18px system-ui;cursor:pointer}
+#zoomCtl button:hover{background:#145aa0}
+
+/* ===== Botões de habilidade v8: aro na cor do tipo, brilho, ícone nítido, recarga escurecida ===== */
+.sk .hex{background:linear-gradient(170deg,#ffffff,var(--tc,#6fd8f0) 28%,color-mix(in srgb,var(--tc,#6fd8f0) 55%,#000) 70%,#081420)!important;position:relative;filter:drop-shadow(0 3px 4px #000a) drop-shadow(0 0 6px color-mix(in srgb,var(--tc,#6fd8f0) 60%,transparent))}
+.sk .hex i{image-rendering:auto;box-shadow:inset 0 0 0 2px #0008}
+.sk .hex .shine{position:absolute;inset:4px;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);background:linear-gradient(160deg,#ffffff55 0%,#fff0 38%,#fff0 70%,#0004 100%);pointer-events:none}
+.sk:not(.off):hover .hex{transform:translateY(-2px) scale(1.04);transition:transform .12s}
+.sk.off .hex i,.sk[disabled] .hex i{filter:grayscale(.85) brightness(.45)!important}
+.sk .cdn{font:400 32px 'Lilita One',var(--font)!important;color:#fff;-webkit-text-stroke:2px #0a1420;paint-order:stroke}
+.sk .nm{font:400 12px 'Lilita One',var(--font)!important;letter-spacing:.2px}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -1666,7 +1684,7 @@ for(const e of DEX){
   }
 }
 // ===== Formas Mega: evolução permanente depois da forma final. Só entram as que já têm arte (MEGA_READY) =====
-const MEGA_READY = [20164,20464,20474,20524,20924,21094,21284,21144,21146,21153,21163,21173,21184];
+const MEGA_READY = [20164,20464,20474,20524,20924,21094,21284,21144,21146,21153,21163,21173,21184,20194,20203,20363,20374,20383,20454,20465,20484,20485,20502,20662,20703,20744,20754,20872,20883,21102,21112,21122,21134,21193,21204,21214,21223,21234,21242,21253,21263,21273,21293,21302,21854];
 const MEGA_MULT = 1.3, MEGA_REQ = {lv:50, int:40, cards:0, mega:1, gold:300000};
 const MEGA_OF = {}, MEGA_LIST = []; // espécie → nº do Livro da Mega; lista de todas (famílias com 2 Megas aparecem 2 vezes)
 for(const id of MEGA_READY){ const e = DEXBY[id]; if(!e) continue; const sp = 'dex'+e.ch[0]; if(!SPECIES[sp] || !SPECIES[sp].playable) continue;
@@ -2744,13 +2762,26 @@ const BOSS_POS = [815,245];
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let K=1, bg=null;
 
+// No computador (mouse + tela larga) o palco não ocupa a tela inteira: fica menor e centralizado, como se a câmera estivesse mais longe.
+// Zoom ajustável (botões − e + no canto, ou as teclas [ e ]); celular continua ocupando a tela toda.
+const IS_DESK = matchMedia('(hover: hover) and (pointer: fine)').matches;
+const DESK_ZOOMS = [.62, .7, .78, .86, .94, 1];
+let deskZoom = 2; try{ const v = localStorage.getItem('idle2d.zoom'), z = +v; if(v!==null && z>=0 && z<DESK_ZOOMS.length) deskZoom = z; }catch(e){}
+const deskMode = () => IS_DESK && innerWidth >= 900 && innerWidth > innerHeight;
+function setDeskZoom(d){ deskZoom = Math.max(0, Math.min(DESK_ZOOMS.length-1, deskZoom + d)); try{ localStorage.setItem('idle2d.zoom', deskZoom); }catch(e){} fit(); }
 function fit(){
-  const s = Math.min(innerWidth/W, (innerHeight - (innerHeight>innerWidth?40:0))/H);
+  let s = Math.min(innerWidth/W, (innerHeight - (innerHeight>innerWidth?40:0))/H);
+  const desk = deskMode(); document.body.classList.toggle('desk', desk);
+  if(desk) s = Math.min(s, Math.max(1, s*DESK_ZOOMS[deskZoom]), 1.6);
   wrap.style.transform = `translate(-50%,-50%) scale(${s})`;
   K = Math.min(3, Math.max(1, s*(devicePixelRatio||1)));
   cv.width = W*K; cv.height = H*K; bg = null;
 }
-addEventListener('resize', fit); fit();
+addEventListener('resize', fit);
+addEventListener('keydown', e=>{ if(!deskMode() || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return; if(e.key===']') setDeskZoom(1); if(e.key==='[') setDeskZoom(-1); });
+{ const z = document.createElement('div'); z.id = 'zoomCtl'; z.innerHTML = '<button aria-label="Diminuir o jogo" title="Diminuir ( [ )">−</button><span>Zoom</span><button aria-label="Aumentar o jogo" title="Aumentar ( ] )">+</button>'; document.body.append(z);
+  z.children[0].onclick = ()=>setDeskZoom(-1); z.children[2].onclick = ()=>setDeskZoom(1); }
+fit();
 
 const THEMES = {
   praia:  {g1:'#e9c98a', g2:'#d9b06a', mark:'#c79a57', line:'#c79f60', w1:'#2bb6c9', w2:'#57d6e0', foam:'#fff', d1:'#4f8f8c', d2:'#5c9e98', dEdge:'#2f5f5d', f1:'#2f7d4a', f2:'#3d9a59'},
@@ -3305,7 +3336,11 @@ function glyph(g, t){ // símbolos brancos em caixa 100x100, centro (50,50)
 }
 // arte pintada (sk/<tipo>_<phys|spec|aoe>.png, sk/heal|buff|debuff.png); sem o arquivo, usa o ícone desenhado
 const SK_SLUG = {Normal:'normal',Fogo:'fogo','Água':'agua',Planta:'planta','Elétrico':'eletrico',Gelo:'gelo',Batalha:'batalha',Venenoso:'venenoso',Terra:'terra',Pedra:'pedra',Voador:'voador',Inseto:'inseto',Fantasma:'fantasma','Psíquico':'psiquico','Dragão':'dragao',Fada:'fada',Noturno:'noturno','Metálico':'metalico'};
-const skArtKey = sk => ['heal','buff','debuff'].includes(sk.kind) ? sk.kind : `${SK_SLUG[sk.type]||'normal'}_${sk.aoe?'aoe':sk.kind==='phys'?'phys':'spec'}`;
+// ícones v2: 3 variações por tipo e categoria (sk2/<tipo>_<phys|spec|aoe>_<1-3>.png, sk2/<heal|buff|debuff>_<1-3>.png); a variação sai do nome da habilidade
+const SK2 = new Set(); // preenchido com os tipos que já têm a arte nova
+const skHash = s => { let h = 7; for(const c of String(s)) h = (h*31 + c.charCodeAt(0)) >>> 0; return h; };
+const skArtKey = sk => { const sup = ['heal','buff','debuff'].includes(sk.kind), slug = SK_SLUG[sk.type]||'normal', cat = sup ? sk.kind : `${slug}_${sk.aoe?'aoe':sk.kind==='phys'?'phys':'spec'}`;
+  return SK2.has(sup ? 'sup' : slug) ? `../sk2/${cat}_${1 + skHash(sk.name) % 3}` : cat; };
 const SKART = {};
 for(const k in SKILLS) setTimeout(()=>skillIcon(k)); // pré-carrega a arte
 function skillIcon(skId){
@@ -3352,7 +3387,7 @@ function showSkills(u){
     const desc = skDesc(sk);
     b.title = `${sk.name} — ${desc}${sk.cd?` · recarga ${sk.cd}`:''}`;
     b.setAttribute('aria-label', b.title);
-    b.innerHTML = `<span class="hex"><i style="background:#0a1420 url(${skillIcon(s)}) center/cover"></i></span><span class="nm">${sk.name}</span><span class="tp" style="background:${TYPES[sk.type]}">${sk.type}</span>${rd?'':`<span class="cdn">${u.cd[s]}</span>`}`;
+    b.style.setProperty('--tc', TYPES[sk.type]||'#6fd8f0'); b.innerHTML = `<span class="hex"><i style="background:#0a1420 url(${skillIcon(s)}) center/cover"></i><b class="shine"></b></span><span class="nm">${sk.name}</span><span class="tp" style="background:${TYPES[sk.type]}">${sk.type}</span>${rd?'':`<span class="cdn">${u.cd[s]}</span>`}`;
     longPress(b, `<b>${sk.name}</b><em style="background:${TYPES[sk.type]}">${sk.type}</em>${desc}${sk.cd?`<br>Recarga: ${sk.cd} ações${rd?'':` (faltam ${u.cd[s]})`}`:'<br>Sem recarga'}${isSup?`<br><span style="color:#ffd24a">Supremo: com a energia cheia vira golpe cinematográfico.</span>`:''}`);
     b.onclick = ()=>{
       if(b._lp){ b._lp = false; return; }
