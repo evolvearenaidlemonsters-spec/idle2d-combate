@@ -170,7 +170,7 @@ sv.items.libFus1=2; assert.strictEqual(E.libBreak(sv,'brasilho','Fus'),null); as
 sv=E.newSave(); sv.diamonds=1000; const cf=E.spinCapsule(sv,'raro',1,now,()=>0.1); assert(cf.got[0].item==='frag' && sv.frags[cf.got[0].sp]===5 && !sv.items.fragU);
 
 // Pokédex no jogo: tipos duplos, golpes por afinidade, evolução pela ficha, obtenção, Pokédex do jogador
-assert.strictEqual(E.DEX_BASES.length,267); assert.strictEqual(E.POOL.masmorra.length+E.POOL.sorteio.length+E.POOL.arena.length,267);
+assert.strictEqual(E.DEX_BASES.length,113); assert.strictEqual(E.POOL.masmorra.length+E.POOL.sorteio.length+E.POOL.arena.length,113);
 assert(E.POOL.arena.every(x=>E.SPECIES[x].grade==='S') && E.POOL.sorteio.every(x=>E.SPECIES[x].grade!=='S'));
 assert.strictEqual(E.eff('Água',['Fogo','Pedra']),4); assert.strictEqual(E.eff('Normal','Fantasma'),0,'imunidade real, como no vídeo');
 for(const r of E.REGIONS) for(const st of r.stages) for(const w of st.waves) for(const f of w){ const sp=f.replace('!','').split('@')[0], S=E.SPECIES[sp]; assert(!E.WILD_MULT || S.boss || (S.dex && E.REGION_TYPES[r.id].includes(S.type)), 'selvagem fora do tema: '+f); }
@@ -215,7 +215,7 @@ assert(!E.unlocked(sv,'dungeon-2')); assert(!E.STAGE_ORDER.includes('dungeon-1')
 const dg={over:'vitoria',stage:'dungeon-1',actions:999,allies:[0,1,2].map(i=>({hp:1,sp:['brasilho','folhito','gotim'][i]}))}; const rdg=E.applyRewards(sv,dg,()=>0.5);
 assert(rdg.acc && sv.acc.length===1); assert(E.unlocked(sv,'dungeon-2')); assert.strictEqual(Object.keys(rdg.items).filter(k=>/^lib\w+1$/.test(k)).length,1,'andar 1 dropa item de liberação faixa I'); assert.strictEqual(E.startFarm(sv,'dungeon-1',now).why,'elite');
 // save v7 → v8: ganha bolsa de acessórios e a montaria se já venceu a Praia 5
-const old={v:7,owned:{brasilho:{lv:3}},items:{},stages:{'praia-5':{best:2,clears:1}}}; E.migrate(old); assert.strictEqual(old.v,11); assert.deepStrictEqual(old.mount.have,['cabrito']); assert.deepStrictEqual(old.owned.dex20151.acc,[null,null,null]);
+const old={v:7,owned:{brasilho:{lv:3}},items:{},stages:{'praia-5':{best:2,clears:1}}}; E.migrate(old); assert.strictEqual(old.v,12); assert.deepStrictEqual(old.mount.have,['cabrito']); assert.deepStrictEqual(old.owned.dex20151.acc,[null,null,null]);
 
 // Eventos: Desafio Semanal (só o tipo da semana, até 10 Universais), fim de semana (VIT ½), marcos, dica de derrotas, Arena acompanha o treinador
 { const now=new Date(2026,9,6,12).getTime(), sat=new Date(2026,9,10,12).getTime(); const st=E.weeklySetup(now,20); let s2=E.newSave();
@@ -256,7 +256,7 @@ const old={v:7,owned:{brasilho:{lv:3}},items:{},stages:{'praia-5':{best:2,clears
     const m='dex21141'; if(E.megaIdx(m).length>1){ const s6=E.newSave(); s6.trainer.lv=99; s6.owned[m]={...s4.owned[sp], form:E.normalForms(m)}; s6.gold=1e6; s6.items.pedraMU=2;
       const [a,b]=E.megaIdx(m); assert.strictEqual(E.canTransform(s6,m,b),null); assert(E.transform(s6,m,b) && s6.owned[m].form===b); assert.strictEqual(E.canTransform(s6,m),'max'); assert.strictEqual(E.canTransform(s6,m,a),'max'); } }
   { const o={v:10,owned:{dex20151:{lv:5}},items:{},stages:{},dex:{},diamonds:0,mount:{have:['cabrito','grifo'],cur:'cabrito',lv:12,exp:3,gear:{sela:1,manta:1}}}; E.migrate(o);
-    assert.strictEqual(o.v,11); assert.strictEqual(o.mount.cur,'grifo'); assert.deepStrictEqual(o.mount.have,['cabrito','lagarto','grifo']); assert.strictEqual(o.diamonds,400,'equipamentos de montaria viram diamantes'); assert(!o.mount.gear); }
+    assert.strictEqual(o.v,12); assert.strictEqual(o.mount.cur,'grifo'); assert.deepStrictEqual(o.mount.have,['cabrito','lagarto','grifo']); assert.strictEqual(o.diamonds,400,'equipamentos de montaria viram diamantes'); assert(!o.mount.gear); }
   { const t=E.newSave(); t.diamonds=900; const b0=E.extraBonus(t).atk||0; assert.strictEqual(E.buyTrainerSkin(t,'S'),null); assert.strictEqual(t.costume,'S'); assert(E.extraBonus(t).atk>b0,'fantasia soma atributos');
     assert.strictEqual(E.buyTrainerSkin(t,'G'),'diamantes'); assert.strictEqual(E.wearTrainerSkin(t,'G'),'nao'); assert.strictEqual(E.wearTrainerSkin(t,null),null); assert(E.extraBonus(t).atk>b0,'vale mesmo sem vestir'); }
   console.log('mega/boss global OK'); }
@@ -302,7 +302,7 @@ console.log('ouro', sv.gold, 'treinador nv', sv.trainer.lv, 'pokédex obtidas', 
 }
 console.log('OK');
 { const o={v:8,owned:{brasilho:{lv:7,int:3,form:1,sk:{brasa:2}},gotim:{lv:2},dex20151:{lv:1}},team:['brasilho','gotim','dex20151'],items:{},stages:{},dex:{}};
-  E.migrate(o); assert.strictEqual(o.v,11); assert(!o.owned.brasilho && !o.owned.gotim); assert.strictEqual(o.owned.dex20221.lv,7); assert.deepStrictEqual(o.owned.dex20221.sk,{});
+  E.migrate(o); assert.strictEqual(o.v,12); assert(!o.owned.brasilho && !o.owned.gotim); assert.strictEqual(o.owned.dex20221.lv,7); assert.deepStrictEqual(o.owned.dex20221.sk,{});
   assert.deepStrictEqual(o.team,['dex20221','dex20651','dex20151']); const o2={v:9,owned:{dex20151:{lv:5,fus:5,sk:{x:7}}},items:{fragS:7,cristalT:3,pergaminho:2},stages:{},dex:{}}; E.migrate(o2);
   assert.deepStrictEqual(o2.items,{fragU:7,evoC:3,libInt1:2}); assert.strictEqual(o2.owned.dex20151.fusCap,6); assert.strictEqual(o2.owned.dex20151.skCap,8);
   console.log('migração v9 OK'); }
@@ -311,3 +311,8 @@ console.log('OK');
   assert.strictEqual(E.freeRare(sv,now+864e5),1); console.log('raro grátis OK'); }
 { let c=0; const u={side:'A',slot:0,acts:0,fx:[],st:{spd:60}}, t={side:'E',slot:1,fx:[]}; for(let i=0;i<4000;i++){ u.acts=i%7; if(E.isCrit({actions:i,wave:i%3},u,t)) c++; }
   const r=c/4000; assert(r>.04 && r<.13, 'taxa de crítico '+r); console.log('crítico OK', r.toFixed(3)); }
+{ // v12: monstros cortados devolvem recursos
+  const o = {v:11, gold:0, items:{}, owned:{dex20033:{lv:10, form:0, int:40, equip:{id:1}}, dex20151:{lv:3}}, frags:{dex20033:5}, team:['dex20033','dex20151'], dex:{20033:2}, gear:[], acc:[]};
+  E.migrate(o); assert.strictEqual(o.v,12); assert(!o.owned.dex20033 && o.owned.dex20151); assert.deepStrictEqual(o.team,['dex20151']);
+  assert(o.gold === 300*10 + 300*5, 'ouro devolvido'); assert(o.items.pocaoXP===9 && o.items.fruta===2); assert.strictEqual(o.gear.length,1); assert(!o.dex[20033]); assert.strictEqual(o.cutRefund.n,1);
+  console.log('corte de monstros OK'); }
