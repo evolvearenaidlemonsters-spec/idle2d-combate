@@ -1503,6 +1503,19 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #monTabs button{width:84px!important;height:64px!important;font-size:18px!important;line-height:1.02!important;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)!important;
   background:var(--tk-hex),linear-gradient(#3a8ee0,#1a5cb0 55%,#0c3478)!important;box-shadow:inset 0 0 0 2px var(--st1),inset 0 0 0 4px var(--st4),inset 0 0 0 5px #6ac8ff,inset 0 -6px 0 #08244a!important}
 #monTabs button.on{background:var(--tk-hex),linear-gradient(#ffe08a,#f6a82a 50%,#d0700e)!important;color:#4a1e00!important;text-shadow:0 1px 0 #ffe6a0!important;box-shadow:inset 0 0 0 2px #fff6d0,inset 0 0 0 4px #8a4a08,inset 0 0 0 5px #ffd25a,inset 0 -6px 0 #a04a06,0 0 14px #ffb02a88!important}
+
+/* ===== Combate v12 (BattleSystem): fila com vida, prévia da fila, custo das habilidades ===== */
+.ord .oh{position:absolute;left:4px;right:4px;bottom:3px;height:5px;border-radius:3px;background:#0a1218;box-shadow:0 0 0 1px #000a;overflow:hidden}
+.ord .oh::before{content:"";position:absolute;inset:0;width:calc(var(--q)*100%);background:linear-gradient(#b6ff7a,#2f9a2a)}
+.ord.E .oh::before{background:linear-gradient(#ff9a8a,#c8202a)}
+.ord.cur .oh{bottom:16px}
+.ord.pv{outline:2px dashed #ffd25acc;outline-offset:-2px}
+.ord.pv::after{content:"";position:absolute;inset:0;background:#ffd25a14;pointer-events:none}
+.sk .cost{position:absolute;top:-8px;right:-6px;font:400 12px 'Lilita One',var(--font);padding:1px 6px;border-radius:7px;background:#0b2238e6;color:#bfe9ff;border:1px solid #5ac8ff;text-shadow:0 1px 0 #000;white-space:nowrap;pointer-events:none}
+.sk .cost.free{color:#c8ffb0;border-color:#7ad85a}
+.sk .cost.en{color:#ffe8a0;border-color:#ffb02a;background:#3a1e04e6}
+.sk .cost.en.ok{background:linear-gradient(#ffe27a,#f0a018);color:#4a1e00;text-shadow:none;box-shadow:0 0 8px #ffc23d}
+.sk.full .cost{display:none}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -3392,8 +3405,8 @@ function float(x,y,txt,color,size=28,kind='txt'){ floaters.push({x,y,txt,color,s
 // números de dano no estilo do vídeo: etiqueta (Super!/Inefetivo) + "- 103" com dígitos espaçados, contorno grosso, pop-in
 const DMG_STYLE = { super:{tag:'Super!', top:'#e6f7ff', bot:'#59b8ff', edge:'#0b2a48'}, inef:{tag:'Inefetivo', top:'#ffd2d2', bot:'#e0505a', edge:'#4a0d14'},
   imune:{tag:'Imune', top:'#e0e0e0', bot:'#8a8a9a', edge:'#202028'}, crit:{tag:'Crítico', top:'#ffc0b0', bot:'#e01a2a', edge:'#3a0006'},
-  '':{tag:'', top:'#ffffff', bot:'#ffe08a', edge:'#3a1a06'}, ally:{tag:'', top:'#ffd0b0', bot:'#ff4a3a', edge:'#4a0a06'}, heal:{tag:'', top:'#e8ffd8', bot:'#4fe06a', edge:'#0a3a12'} };
-function dmgFloat(x, y, n, kind, side, big){ const k = kind==='heal' ? 'heal' : kind || (side==='A' ? 'ally' : ''); floaters.push({x, y, txt:(kind==='heal'?'+ ':'- ')+String(n).split('').join(' '), tag:DMG_STYLE[k].tag, st:DMG_STYLE[k], size: big?68:48, life:1300, kind:'dmg'}); }
+  '':{tag:'', top:'#ffffff', bot:'#ffe08a', edge:'#3a1a06'}, bom:{tag:'Bom', top:'#fffbe8', bot:'#ffc93a', edge:'#4a2a04'}, ally:{tag:'', top:'#ffd0b0', bot:'#ff4a3a', edge:'#4a0a06'}, heal:{tag:'', top:'#e8ffd8', bot:'#4fe06a', edge:'#0a3a12'} };
+function dmgFloat(x, y, n, kind, side, big){ BS.spawnDamageText(x, y, n, kind, side, big); }
 function drawFloater(f){
   const age = 1300-f.life, pop = age<120 ? 1.7-0.7*age/120 : 1, a = Math.min(1, f.life/350);
   ctx.save(); ctx.globalAlpha = a; ctx.translate(f.x, f.y); ctx.scale(pop, pop); ctx.transform(1,0,-.12,1,0,0); ctx.textBaseline='middle'; ctx.lineJoin='round';
@@ -3424,7 +3437,7 @@ function frameBody(ts){
     const d = dt*speed;
     for(const f of floaters){ f.life-=d; f.y-=d*(f.kind==='dmg'?0.03:0.04); } floaters = floaters.filter(f=>f.life>0);
     for(const b of bursts) b.t+=d; bursts = bursts.filter(b=>b.t<380); for(const b of beams) b.t+=d; beams = beams.filter(b=>b.t<620); if(shake>0) shake-=d; if(flashW>0) flashW-=d;
-    for(const u of all(B)){ const v=vis(u); v.bar += (v.hp-v.bar)*Math.min(1,d/300); if(v.flash>0) v.flash-=d; if(v.kb>0) v.kb=Math.max(0,v.kb-d/240);
+    for(const u of all(B)){ const v=vis(u); BS.animateHp(v, d); if(v.flash>0) v.flash-=d; if(v.kb>0) v.kb=Math.max(0,v.kb-d/240);
       if(v.hp<=0 && v.alpha>0){ v.dt=(v.dt||0)+d; // derrota: pisca, vira silhueta, afunda e some
         if(!v.puff && v.dt>260){ v.puff=1; const [px,py]=posOf(u); spark(px, py-30*scaleOf(u), ['#3a3550','#6a6488','#ffffff'], 16, {speed:.18, up:.05, r:7, life:700, g:-.0002, w:50, h:30}); if(u.side==='E') orbs.push({x:px, y:py-50*scaleOf(u), t:0, sx:px, sy:py-50*scaleOf(u)}); }
         if(v.dt>320) v.alpha=Math.max(0,1-(v.dt-320)/520); } }
@@ -3576,7 +3589,7 @@ function runAnim(d){
     a.hit = true;
     for(const h of a.ev.hits){
       const v = vis(h.u), [hx,hy] = posOf(h.u), top = hy-70*scaleOf(h.u);
-      v.hp = h.u.hp; if(h.u.hp>0 || h.heal!=null || h.buff) v.alpha = 1;
+      if(h.dmg!=null && h.u.hp < v.hp) v.barHold = 260; v.hp = h.u.hp; if(h.u.hp>0 || h.heal!=null || h.buff) v.alpha = 1;
       if(h.dmg!=null){ v.flash = 180; const big = a.ult || h.m>1 || h.crit; sfx(h.crit?'crit':h.m>1?'super':'hit'); if(h.ko) setTimeout(()=>sfx('ko'), 120);
         { const ddx = hx-x0, ddy = hy-y0, dl = Math.hypot(ddx,ddy)||1; v.kbx = ddx/dl*(big?26:16); v.kby = ddy/dl*(big?12:8); v.kb = 1; }
         hitStop = Math.max(hitStop, big?110:55); { const F = tfx(sk.type), n = Math.round(F.n*(big?1.6:1)*(a.strong?1.2:1));
@@ -3600,37 +3613,8 @@ function runAnim(d){
   }
 }
 
-function next(){
-  if(!B || B.over) return;
-  updateTop();
-  const u = current(B);
-  if(selTarget==null || !B.foes.find(f=>f.id===selTarget && f.hp>0)) selTarget = lowestHp(live(B.foes)).id;
-  if(u.side==='A' && !auto){ waiting = u; pending = null; showSkills(u); return; }
-  const [s,t] = choose(B,u);
-  doAct(u,s,t);
-}
-
-function doAct(u,s,t){
-  if(anim || B.over || current(B)!==u) return; // evita ação dupla
-  waiting = null; pending = null; showSkills(null);
-  const ev = act(B,s,t);
-  const sk0 = SKILLS[ev.skill], supr = u.skills.reduce((m,k)=>(SKILLS[k].cd||0)>(SKILLS[m].cd||0)?k:m, u.skills[0]);
-  const isSup = !!(sk0 && ev.skill===supr && sk0.cd>=3 && sk0.kind!=='buff' && sk0.kind!=='heal');
-  // aliado: cinema só com a barra de energia cheia (consome); inimigo: só chefes, de vez em quando
-  let ult = isSup && !reduce && (u.side==='A' ? energy>=ENERGY_MAX : !!(u.boss||u.sub) && (B.actions - (B._lastUlt??-99)) >= 6);
-  if(ult){ if(u.side==='A'){ energy = 0; drawCombo(); } else B._lastUlt = B.actions; }
-  sfx(ult ? 'ult' : 'whoosh');
-  anim = {ev, el:0, hit:false, ult, strong: !!(sk0 && (sk0.cd>=3 || (sk0.aoe && sk0.kind==='spec')))};
-  updateTop();
-}
 
 // ---- interface ----
-function updateTop(){
-  $('wave').textContent = `Ondas: ${B.wave+1}/${STAGES[B.stage].waves.length}`; $('wave').hidden = curStage==='arena';
-  const ord = $('order'); ord.textContent='';
-  const list = anim ? [anim.ev.actor, ...preview(B,5)] : preview(B,6);
-  list.forEach((u,i)=>{ const d=document.createElement('div'); d.className='ord '+u.side+(i===0?' cur':''); d.append(faceC(u.sp, u.side==='A'?1:-1, u.form)); if(i===0){ const s=document.createElement('span'); s.textContent=u.side==='A'?'Eu':'Inimigo'; d.append(s); } ord.append(d); });
-}
 const PC = {};
 function portraitC(sp, face, form=0){ // cópia de um retrato em cache (a Ordem redesenha a cada ação)
   const k = sp+'|'+face+'|'+form; let src = PC[k]; if(!src || !src._ok){ src = PC[k] = portrait(sp, face, form); src._ok = !!monImg((artOf(sp,form)||{}).id); }
@@ -3745,49 +3729,161 @@ function dragScroll(el){ if(!el || el._drag) return; el._drag = true; el.classLi
   addEventListener('pointermove', e=>{ if(!st) return; const dy = e.clientY-st.y, dx = e.clientX-st.x; if(Math.abs(dy)>5||Math.abs(dx)>5) st.moved = true; if(st.moved){ el.scrollTop = st.t - dy; el.scrollLeft = st.l - dx; } });
   addEventListener('pointerup', ()=>{ if(st && st.moved){ el._justDragged = true; setTimeout(()=>el._justDragged=false, 50); } st = null; });
   el.addEventListener('click', e=>{ if(el._justDragged){ e.stopPropagation(); e.preventDefault(); } }, true); }
-function showSkills(u){
-  const box = $('skills'); box.textContent=''; $('hint').hidden = true; skTip(null); box.classList.toggle('compact', !!u && u.skills.length>3);
-  if(!u) return;
-  $('hint').hidden = false; $('hint').textContent = `Vez de ${u.name}: toque num inimigo para mirar e escolha a habilidade`;
-  const sup = supremeOf(u), full = energy>=ENERGY_MAX;
-  u.skills.forEach(s=>{
-    const sk = SKILLS[s], b = document.createElement('button'); b.className='sk'; b.id='sk-'+s;
-    const rd = ready(u,s); if(!rd){ b.setAttribute('aria-disabled','true'); b.classList.add('off'); }
-    const isSup = s===sup && (sk.cd||0)>=3 && sk.kind!=='buff' && sk.kind!=='heal';
-    if(isSup && rd && full) b.classList.add('full');
-    const desc = skDesc(sk);
-    b.title = `${sk.name} — ${desc}${sk.cd?` · recarga ${sk.cd}`:''}`;
-    b.setAttribute('aria-label', b.title);
-    b.style.setProperty('--tc', TYPES[sk.type]||'#6fd8f0'); b.innerHTML = `<span class="hex"><i style="background:#0a1420 url(${skillIcon(s)}) center/cover"></i><b class="shine"></b></span><span class="nm">${sk.name}</span><span class="tp" style="background:${TYPES[sk.type]}">${sk.type}</span>${rd?'':`<span class="cdn">${u.cd[s]}</span>`}`;
-    longPress(b, `<b>${sk.name}</b><em style="background:${TYPES[sk.type]}">${sk.type}</em>${desc}${sk.cd?`<br>Recarga: ${sk.cd} ações${rd?'':` (faltam ${u.cd[s]})`}`:'<br>Sem recarga'}${isSup?`<br><span style="color:#ffd24a">Supremo: com a energia cheia vira golpe cinematográfico.</span>`:''}`);
-    b.onclick = ()=>{
-      if(b._lp){ b._lp = false; return; }
-      if(waiting!==u || !rd) return;
-      if(sk.target==='ally'){ pending = s; [...box.children].forEach(x=>x.classList.toggle('pend',x===b)); $('hint').textContent = `${sk.name}: toque no aliado que vai receber`; return; }
-      doAct(u, s, sk.target==='self'||sk.aoe ? null : selTarget);
-    };
-    box.append(b);
-  });
-  markSkillAdv();
-  if(u.skills.length<3 && u.side==='A'){ // 3º espaço trancado, como no vídeo
-    const own = save.owned[u.sp], nx = own && skillPlan(u.sp, u.form||0).find(x=>!u.skills.includes(x.id));
-    const b = document.createElement('button'); b.className='sk lock off'; b.setAttribute('aria-disabled','true');
-    b.innerHTML = `<span class="hex"><i>🔒<br>${nx?`Intim. ${nx.cap}`:'—'}</i></span><span class="tp">Bloq.</span>`;
-    const tip = nx ? `<b>${SKILLS[nx.id].name}</b><em style="background:${TYPES[SKILLS[nx.id].type]}">${SKILLS[nx.id].type}</em>${skDesc(SKILLS[nx.id])}<br>Libera com o limite de Intimidade ${nx.cap}.` : '<b>Espaço bloqueado</b>Sem habilidade nova nesta forma.';
-    longPress(b, tip); box.append(b);
+// ===================================================================================================
+// BattleSystem — controla a tela de combate (fila de turnos, painel de habilidades, textos de dano,
+// barras de vida, Auto e velocidade ×1/×2). As REGRAS continuam no motor puro (newBattle, current,
+// preview, choose, act), que é testado em test_engine.js e não muda. O estado da luta segue nas
+// variáveis compartilhadas (B, anim, waiting, pending, auto, speed, paused, floaters, energy…), que o
+// desenho (render/runAnim) também lê; esta classe é o único lugar que decide o fluxo da luta.
+// ===================================================================================================
+class BattleSystem {
+  constructor(){
+    this.qPrev = new Map();       // posição de cada retrato na fila (para animar a troca de lugar)
+    this.qPreview = null;         // fila prevista ao apontar uma habilidade
+    this.stack = new Map();       // textos de dano recentes por alvo (empilhar sem sobrepor)
+    try{ const p = JSON.parse(localStorage.getItem('idle2d.bat')||'{}'); this.pref = {auto:!!p.auto, speed:p.speed===2?2:1}; }catch(e){ this.pref = {auto:false, speed:1}; }
   }
+  savePref(){ this.pref = {auto, speed}; try{ localStorage.setItem('idle2d.bat', JSON.stringify(this.pref)); }catch(e){} }
+  // ----- ciclo -----
+  start(foes){ start(foes); }                       // monta a luta (fase, Arena, chefe) — ver start()
+  applyPrefs(){ // Auto e velocidade lembrados entre lutas
+    this.setSpeed(this.pref.speed, true); this.setAuto(this.pref.auto && save.trainer.lv >= AUTO_LV, true); }
+  loop(ts){ frame(ts); }
+  update(dt){ /* avançado em frameBody: textos, partículas, animação do golpe */ }
+  render(ts){ render(ts); }
+  pause(){ paused = true; $('paused').hidden = false; }
+  resume(){ paused = false; $('paused').hidden = true; $('quitBtn').classList.remove('warn'); $('quitBtn').querySelector('span').textContent = 'Desistir'; }
+  end(){ showResult(); }
+  // ----- turnos -----
+  nextTurn(){
+    if(!B || B.over) return;
+    this.renderTurnQueue();
+    const u = current(B);
+    if(selTarget==null || !B.foes.find(f=>f.id===selTarget && f.hp>0)) selTarget = lowestHp(live(B.foes)).id;
+    if(u.side==='A' && !auto){ waiting = u; pending = null; this.renderSkillPanel(u); return; }
+    const [s,t] = choose(B,u);
+    this.executeAction(u,s,t);
+  }
+  getTurnQueue(n=6){ return anim ? [anim.ev.actor, ...preview(B,n-1)] : preview(B,n); }
+  // fila prevista se o monstro da vez usar a habilidade s (simula numa cópia da luta)
+  previewQueue(s){ if(!B || !waiting) return null; try{
+      const c = structuredClone(B), u = current(c); if(!u || u.id!==waiting.id) return null;
+      const sk = SKILLS[s], t = sk.target==='self'||sk.aoe ? null : sk.target==='ally' ? u.id : selTarget; act(c, s, t);
+      if(c.over || c.wave!==B.wave) return null;
+      return preview(c,5).map(x=>all(B).find(y=>y.id===x.id)).filter(Boolean);
+    }catch(e){ return null; } }
+  renderTurnQueue(list){
+    if(!B) return;
+    $('wave').textContent = `Ondas: ${B.wave+1}/${STAGES[B.stage].waves.length}`; $('wave').hidden = curStage==='arena';
+    const ord = $('order'), pv = !!list, L = list ? [waiting, ...list] : this.getTurnQueue(6);
+    const old = new Map(); for(const el of ord.children) old.set(el.dataset.k, el.getBoundingClientRect());
+    ord.textContent = ''; const seen = {};
+    L.forEach((u,i)=>{ const n = seen[u.id] = (seen[u.id]||0)+1, k = u.id+'#'+n;
+      const d = document.createElement('div'); d.className = 'ord '+u.side+(i===0?' cur':'')+(pv&&i>0?' pv':''); d.dataset.k = k;
+      d.append(faceC(u.sp, u.side==='A'?1:-1, u.form));
+      const hp = document.createElement('em'); hp.className = 'oh'; hp.style.setProperty('--q', Math.max(0,u.hp/u.st.hp)); d.append(hp);
+      if(i===0){ const s = document.createElement('span'); s.textContent = u.side==='A'?'Eu':'Inimigo'; d.append(s); }
+      ord.append(d); });
+    if(reduce) return;
+    for(const el of ord.children){ const a = old.get(el.dataset.k), b = el.getBoundingClientRect();
+      if(a){ const dy = a.top-b.top; if(Math.abs(dy)>1) el.animate([{transform:`translateY(${dy}px)`},{transform:'none'}], {duration:260, easing:'cubic-bezier(.2,.8,.2,1)'}); }
+      else el.animate([{opacity:0, transform:'translateY(-14px) scale(.8)'},{opacity:1, transform:'none'}], {duration:240, easing:'ease-out'}); }
+  }
+  // ----- habilidades -----
+  renderSkillPanel(u){
+    const box = $('skills'); box.textContent=''; $('hint').hidden = true; skTip(null); box.classList.toggle('compact', !!u && u.skills.length>3);
+    if(!u) return;
+    $('hint').hidden = false; $('hint').textContent = `Vez de ${u.name}: toque num inimigo para mirar e escolha a habilidade`;
+    const sup = supremeOf(u), full = energy>=ENERGY_MAX;
+    u.skills.forEach(s=>{
+      const sk = SKILLS[s], b = document.createElement('button'); b.className='sk'; b.id='sk-'+s;
+      const rd = ready(u,s); if(!rd){ b.setAttribute('aria-disabled','true'); b.classList.add('off'); }
+      const isSup = s===sup && (sk.cd||0)>=3 && sk.kind!=='buff' && sk.kind!=='heal';
+      if(isSup && rd && full) b.classList.add('full');
+      const desc = skDesc(sk);
+      b.title = `${sk.name} — ${desc}${sk.cd?` · recarga ${sk.cd}`:''}`; b.setAttribute('aria-label', b.title);
+      // custo: Supremo mostra a energia; as outras, a recarga que vão gastar
+      const cost = isSup ? `<span class="cost en${full?' ok':''}">⚡${Math.min(energy,ENERGY_MAX)}/${ENERGY_MAX}</span>` : sk.cd ? `<span class="cost">Rec. ${sk.cd}</span>` : `<span class="cost free">Livre</span>`;
+      b.style.setProperty('--tc', TYPES[sk.type]||'#6fd8f0');
+      b.innerHTML = `<span class="hex"><i style="background:#0a1420 url(${skillIcon(s)}) center/cover"></i><b class="shine"></b></span><span class="nm">${sk.name}</span><span class="tp" style="background:${TYPES[sk.type]}">${sk.type}</span>${rd?cost:`<span class="cdn">${u.cd[s]}</span>`}`;
+      longPress(b, `<b>${sk.name}</b><em style="background:${TYPES[sk.type]}">${sk.type}</em>${desc}${sk.cd?`<br>Recarga: ${sk.cd} ações${rd?'':` (faltam ${u.cd[s]})`}`:'<br>Sem recarga'}${isSup?`<br><span style="color:#ffd24a">Supremo: com a energia cheia vira golpe cinematográfico.</span>`:''}`);
+      // apontar (mouse) ou começar a segurar (toque): a fila mostra como fica depois desse golpe
+      const showPv = ()=>{ if(waiting===u && rd){ this.qPreview = this.previewQueue(s); if(this.qPreview) this.renderTurnQueue(this.qPreview); } };
+      const hidePv = ()=>{ if(this.qPreview){ this.qPreview = null; this.renderTurnQueue(); } };
+      b.addEventListener('pointerenter', showPv); b.addEventListener('pointerdown', showPv); b.addEventListener('pointerleave', hidePv); b.addEventListener('pointercancel', hidePv);
+      b.onclick = ()=>{ if(b._lp){ b._lp = false; return; } this.selectSkill(u, s, b); };
+      box.append(b);
+    });
+    markSkillAdv();
+    if(u.skills.length<3 && u.side==='A'){ // 3º espaço trancado
+      const own = save.owned[u.sp], nx = own && skillPlan(u.sp, u.form||0).find(x=>!u.skills.includes(x.id));
+      const b = document.createElement('button'); b.className='sk lock off'; b.setAttribute('aria-disabled','true');
+      b.innerHTML = `<span class="hex"><i>🔒<br>${nx?`Intim. ${nx.cap}`:'—'}</i></span><span class="tp">Bloq.</span>`;
+      const tip = nx ? `<b>${SKILLS[nx.id].name}</b><em style="background:${TYPES[SKILLS[nx.id].type]}">${SKILLS[nx.id].type}</em>${skDesc(SKILLS[nx.id])}<br>Libera com o limite de Intimidade ${nx.cap}.` : '<b>Espaço bloqueado</b>Sem habilidade nova nesta forma.';
+      longPress(b, tip); box.append(b);
+    }
+  }
+  selectSkill(u, s, btn){
+    if(waiting!==u || !ready(u,s)) return; const sk = SKILLS[s];
+    if(sk.target==='ally'){ pending = s; [...$('skills').children].forEach(x=>x.classList.toggle('pend',x===btn)); $('hint').textContent = `${sk.name}: toque no aliado que vai receber`; return; }
+    this.executeAction(u, s, sk.target==='self'||sk.aoe ? null : selTarget);
+  }
+  selectTarget(unit){
+    if(!unit || !B || B.over) return;
+    if(unit.side==='E'){ selTarget = unit.id; markSkillAdv(); if(this.qPreview) this.renderTurnQueue(); this.qPreview = null; }
+    else if(pending && waiting) this.executeAction(waiting, pending, unit.id);
+  }
+  // ----- ação -----
+  executeAction(u,s,t){
+    if(anim || B.over || current(B)!==u) return; // evita ação dupla
+    waiting = null; pending = null; this.qPreview = null; this.renderSkillPanel(null);
+    const ev = act(B,s,t);
+    this.playAction(u, ev); return ev;
+  }
+  playAction(u, ev){
+    const sk0 = SKILLS[ev.skill], supr = supremeOf(u);
+    const isSup = !!(sk0 && ev.skill===supr && sk0.cd>=3 && sk0.kind!=='buff' && sk0.kind!=='heal');
+    // aliado: cinema só com a barra de energia cheia (consome); inimigo: só chefes, de vez em quando
+    let ult = isSup && !reduce && (u.side==='A' ? energy>=ENERGY_MAX : !!(u.boss||u.sub) && (B.actions - (B._lastUlt??-99)) >= 6);
+    if(ult){ if(u.side==='A'){ energy = 0; drawCombo(); } else B._lastUlt = B.actions; }
+    sfx(ult ? 'ult' : 'whoosh');
+    anim = {ev, el:0, hit:false, ult, strong: !!(sk0 && (sk0.cd>=3 || (sk0.aoe && sk0.kind==='spec')))};
+    this.renderTurnQueue();
+  }
+  // ----- feedback -----
+  // etiquetas: Super! (×>1), Bom (normal), Inefetivo (×<1), Crítico, Imune; empilha no mesmo alvo
+  spawnDamageText(x, y, n, kind, side, big){
+    const k = kind==='heal' ? 'heal' : kind || (side==='A' ? 'ally' : 'bom'), now = performance.now(), key = Math.round(x/40);
+    const L = (this.stack.get(key)||[]).filter(t=>now-t<520); const lift = L.length * (big?42:32); L.push(now); this.stack.set(key, L);
+    floaters.push({x: x + (L.length>1 ? (L.length%2?-14:14) : 0), y: y - lift, txt:(kind==='heal'?'+ ':'- ')+String(n).split('').join(' '), tag:DMG_STYLE[k].tag, st:DMG_STYLE[k], size: big?68:48, life:1300, kind:'dmg'});
+  }
+  // barra de vida com rastro: o pedaço perdido espera um instante e depois esvazia devagar
+  animateHp(v, d){ if(v.barHold>0){ v.barHold -= d; return; } v.bar += (v.hp-v.bar)*Math.min(1,d/260); if(Math.abs(v.bar-v.hp)<.5) v.bar = v.hp; }
+  // ----- modos -----
+  setAuto(on, quiet){
+    if(on && save.trainer.lv < AUTO_LV){ if(!quiet) toast(`Batalha automática libera no nível ${AUTO_LV} de treinador.`); on = false; }
+    auto = !!on; $('autoBtn').classList.toggle('on',auto); $('autoBtn').setAttribute('aria-pressed',auto);
+    if(!quiet) this.savePref();
+    if(auto && waiting && B && !B.over){ const u = waiting, [s,t] = choose(B,u); this.executeAction(u,s,t); }
+  }
+  setSpeed(x, quiet){ speed = x===2 ? 2 : 1; $('spdBtn').textContent = '×'+speed; if(!quiet) this.savePref(); }
 }
+const BS = new BattleSystem();
+// nomes antigos usados pelo resto do jogo → a classe
+function next(){ BS.nextTurn(); }
+function doAct(u,s,t){ return BS.executeAction(u,s,t); }
+function updateTop(){ BS.renderTurnQueue(); }
+function showSkills(u){ BS.renderSkillPanel(u); }
 cv.addEventListener('pointerdown', e=>{
   if(!B || B.over) return;
   const r = cv.getBoundingClientRect(), x=(e.clientX-r.left)*W/r.width, y=(e.clientY-r.top)*H/r.height;
   const hit = live(all(B)).find(u=>{ const [px,py]=posOf(u), s=scaleOf(u); return Math.hypot(x-px, y-(py-28*s)) < Math.max(42,46*s); });
   if(!hit) return;
-  if(hit.side==='E'){ selTarget = hit.id; markSkillAdv(); }
-  else if(pending && waiting) doAct(waiting, pending, hit.id);
+  BS.selectTarget(hit);
 });
 
-const AUTO_LV = 5, SPEED3_LV = 30;
-$('autoBtn').onclick = ()=>{ if(!auto && save.trainer.lv < AUTO_LV) return toast(`Batalha automática libera no nível ${AUTO_LV} de treinador.`); auto=!auto; $('autoBtn').classList.toggle('on',auto); $('autoBtn').setAttribute('aria-pressed',auto); if(auto && waiting){ const u=waiting, [s,t]=choose(B,u); doAct(u,s,t);} };
+const AUTO_LV = 5;
+$('autoBtn').onclick = ()=>BS.setAuto(!auto);
 function openProv(){ $('prov').hidden = false; const now = Date.now(), a = arenaState(save, now);
   $('provTop').innerHTML = `<span class="pill">${ico('dia')}${save.diamonds||0}</span><span class="pill">${ico('gold')}${save.gold}</span><span class="pill">${ico('medalha')}${save.items.medalha||0}</span>`;
   const C = [{k:'arena', t:'Arena', d:`Ranking de ${ARENA_SIZE} treinadores. Você: N.${myRank(save)} · lutas hoje ${fightsLeft(save,now)}/${ARENA_DAILY}`, img:'bg/arenalobby.jpg', open:true},
@@ -3802,9 +3898,9 @@ $('rankBack').onclick = ()=>{ $('rank').hidden = true; if(!$('city').hidden) ren
 $('provBack').onclick = ()=>{ $('prov').hidden = true; if(!$('city').hidden) renderCityHud(); };
 $('achBack').onclick = ()=>{ $('ach').hidden = true; if(!$('city').hidden) renderCityHud(); };
 $('fragBack').onclick = ()=>{ $('frag').hidden = true; if(!$('city').hidden) renderCityHud(); };
-$('spdBtn').onclick = ()=>{ speed = speed===1 ? 2 : speed===2 && save.trainer.lv >= SPEED3_LV ? 3 : 1; if(speed===1 && save.trainer.lv < SPEED3_LV) toast(`Velocidade ×3 libera no nível ${SPEED3_LV} de treinador.`); $('spdBtn').textContent='×'+speed; };
-$('pauseBtn').onclick = ()=>{ paused=true; $('paused').hidden=false; };
-$('resumeBtn').onclick = ()=>{ paused=false; $('paused').hidden=true; $('quitBtn').classList.remove('warn'); $('quitBtn').querySelector('span').textContent='Desistir'; };
+$('spdBtn').onclick = ()=>BS.setSpeed(speed===1 ? 2 : 1);
+$('pauseBtn').onclick = ()=>BS.pause();
+$('resumeBtn').onclick = ()=>BS.resume();
 $('quitBtn').onclick = ()=>{ const q = $('quitBtn');
   if(!q.classList.contains('warn')){ q.classList.add('warn'); q.querySelector('span').textContent = 'Confirmar'; return; }
   q.classList.remove('warn'); q.querySelector('span').textContent = 'Desistir'; paused = false; $('paused').hidden = true;
@@ -3892,6 +3988,7 @@ function enter(id){
 function start(foes=null){
   bg = null;
   B = newBattle(save.team.slice(), curStage, progMap(save), foes); anim=null; waiting=null; pending=null; selTarget=null; floaters=[]; parts=[]; orbs=[]; bursts=[]; beams=[]; amb=[]; hitStop=0; intro=null; vsIntro=null; hold=0; combo=0; comboT=0; energy=0; drawCombo();
+  BS.applyPrefs();
   if(!$('city').hidden) fromCity = true; else if(!$('map').hidden) fromCity = false;
   { const st = STAGES[curStage]; music(st && (st.idx===4 || st.dungeon) ? 'boss' : 'battle'); }
   $('sel').hidden = $('res').hidden = $('map').hidden = $('rp').hidden = $('arena').hidden = $('city').hidden = true; $('log').textContent='';
