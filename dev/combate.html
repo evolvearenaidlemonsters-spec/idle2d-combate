@@ -3268,7 +3268,9 @@ const pxSrc = k => `px/${k.replace(':','_')}.webp?v=${typeof ASSET_V!=='undefine
 function pxLoad(im, k, orig){ im.src = orig; } // telas de menu (Monstros, Livro, Equipe...) usam a arte pintada
 // Pixel art só na cidade: renderCity() liga PX_SCENE enquanto desenha (monstros, personagens e montarias)
 let PX_SCENE = false; const PXIMG = {};
-function pxImg(k){ if(!PIXEL.has(k)) return null; let im = PXIMG[k]; if(!im){ im = PXIMG[k] = new Image(); im.onload = refreshArt; im.onerror = ()=>{ im.bad = 1; }; im.src = pxSrc(k); } return !im.bad && im.complete && im.naturalWidth ? im : null; }
+// no artifact (fora do site) a pixel art vem num pacote só (art/pack_px.js), porque o artifact aceita poucos arquivos
+window.PXD = window.PXD || null; if(!/workers\.dev$|pages\.dev$|^localhost$|^$/.test(location.hostname)){ const sc = document.createElement('script'); sc.src = 'art/pack_px.js'; sc.onload = ()=>{ for(const k in PXIMG) if(PXIMG[k].bad && window.PXD && PXD[k]){ PXIMG[k].bad = 0; PXIMG[k].src = PXD[k]; } }; document.head.append(sc); }
+function pxImg(k){ if(!PIXEL.has(k)) return null; let im = PXIMG[k]; if(!im){ im = PXIMG[k] = new Image(); im.onload = refreshArt; im.onerror = ()=>{ im.bad = 1; }; im.src = (window.PXD && PXD[k]) || pxSrc(k); } return !im.bad && im.complete && im.naturalWidth ? im : null; }
 let artTimer = 0; // quando uma arte termina de carregar, redesenha as telas abertas que mostram monstros
 function refreshArt(){ clearTimeout(artTimer); artTimer = setTimeout(()=>{ bg = null;
   for(const [id,f] of [['mon',()=>renderMon()],['dex',()=>{ renderDexGrid(); renderDexDet(); }],['sel',()=>buildCards()],['starter',()=>pickStarter()],['dep',()=>renderDep()],['mnt',()=>renderMnt()],['map',()=>drawMap()],['city',()=>renderCityHud()],['prof',()=>renderProf()]]) if(!$(id).hidden) f(); }, 60); }
