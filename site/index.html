@@ -236,7 +236,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #cMisList button b{color:#ffd25a}#cMisList button span{color:#7dff9a}
 #cAct{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:18px;padding:6px 26px}
 #cap{z-index:8;background:radial-gradient(ellipse at 50% 40%,#3a2a6a,#0a0820)}
-#capBack{position:absolute;left:12px;top:8px}
+#capBack{position:absolute;right:12px;top:8px;z-index:5}
 #capTop{position:absolute;left:120px;top:10px;display:flex;gap:8px;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
 #capTitle{position:absolute;left:50%;top:2px;transform:translateX(-50%);margin:0;font-size:26px;color:#ffe1ff}
 #capCards{position:absolute;left:60px;right:60px;top:60px;bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
@@ -495,7 +495,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #capTitle{left:auto!important;right:120px;transform:none!important;background:none!important;border:0!important;box-shadow:none!important;color:#fbe8ff!important;text-shadow:0 2px 0 #2a0a3a,0 0 14px #c88aff88}
 #dep .pill,#bag .pill,#mnt .pill,#shop .pill,#cap .pill,#sel .pill{border:2px solid #3fc4f0;border-radius:999px;background:linear-gradient(#1c2e4a,#0e182c);padding:3px 12px;font:400 14px 'Lilita One',var(--font);box-shadow:0 2px 4px #0008}
 #dep .scrBack,#depBack,#bag .scrBack,#mnt .scrBack,#dexBack{width:52px;height:52px;border:3px solid #3fc4f0!important;background:radial-gradient(circle at 40% 35%,#3a4a62,#141c2c)!important;box-shadow:0 3px 8px #000a!important;color:#f4d88a!important}
-#shopBack,#capBack{border:2px solid #ffe2a0!important;background:linear-gradient(#ffd27a,#c8862a)!important;color:#4a2400!important;font:400 15px 'Lilita One',var(--font)!important;border-radius:999px!important;box-shadow:0 3px 0 #5a3000!important}
+#shopBack{border:2px solid #ffe2a0!important;background:linear-gradient(#ffd27a,#c8862a)!important;color:#4a2400!important;font:400 15px 'Lilita One',var(--font)!important;border-radius:999px!important;box-shadow:0 3px 0 #5a3000!important}
 /* Equipe */
 #sel .box{background:linear-gradient(160deg,#22385a,#121e36 60%,#0c1528);border:3px solid #3fc4f0;border-radius:18px;box-shadow:0 0 0 2px #0a1224,0 10px 30px #000c}
 #sel h2{font:400 30px 'Lilita One',var(--font);color:#f4d88a;margin:0;text-shadow:0 2px 0 #3a2400}
@@ -1581,10 +1581,11 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #rpList,#rpDet,#shopGrid,#bagGrid,#bagInfo,#dexDet,#profPanel,#mntPanel,#rankPanel,#explRight,#fragDet,#achList,#wrap .ainfo,#wrap .ov > .box{
   background:var(--aco-corner),var(--tk-hex),var(--aco-body)!important;border:0!important;border-radius:10px!important;clip-path:none!important;box-shadow:var(--aco-frame)!important}
 /* títulos das telas: placa de aço com asas */
-#rpTitle,#wrap .scrTitle,#shopTitle,#dexTitle,#depTitle,#capTitle{position:relative;display:inline-block;padding:5px 48px 8px!important;font:400 24px 'Lilita One',var(--font)!important;color:#e8fbff!important;letter-spacing:.5px;
+#rpTitle,#wrap .scrTitle,#shopTitle,#dexTitle,#depTitle,#capTitle{padding:5px 48px 8px!important;font:400 24px 'Lilita One',var(--font)!important;color:#e8fbff!important;letter-spacing:.5px;
   background:var(--aco-plate)!important;border:0!important;border-radius:0!important;clip-path:polygon(0 0,100% 0,calc(100% - 26px) 100%,26px 100%);
   box-shadow:inset 0 0 0 3px #c8d6e2,inset 0 0 0 5px #3a5068,inset 0 -8px 14px #3fd8ff55!important;text-shadow:0 0 10px #4fd8ff,0 2px 0 #062040!important}
-#rpTitle{align-self:center;margin:-14px 0 0!important}
+#rpTitle{position:relative;display:inline-block;align-self:center;margin:-14px 0 0!important}
+#capTitle{left:50%!important;right:auto!important;transform:translateX(-50%)!important;top:4px!important;white-space:nowrap;z-index:4}
 /* nome da região: placa de aço clara com pontas */
 #rpList h3{font:400 20px 'Lilita One',var(--font)!important;color:#ffe9a8!important;background:var(--aco-steel)!important;border:0!important;border-radius:0!important;padding:7px 16px!important;white-space:nowrap;
   clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,14px 100%,0 50%);text-shadow:0 0 2px #2a1a00,0 2px 0 #3a2200,1px 1px 0 #3a2200,-1px -1px 0 #3a2200,1px -1px 0 #3a2200,-1px 1px 0 #3a2200!important}
@@ -1792,7 +1793,7 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
   <div id="ach" class="screen" hidden><div id="achTop"></div><h2 class="scrTitle">Conquistas</h2><button class="round small scrBack" id="achBack" aria-label="Fechar">✕</button><nav id="achTabs"></nav><div id="achBar"></div><div id="achList"></div></div>
   <div id="frag" class="screen" hidden><div id="fragTop"></div><h2 class="scrTitle">Fragmentos</h2><button class="round small scrBack" id="fragBack" aria-label="Fechar">✕</button><aside id="fragDet"></aside><div id="fragGrid"></div><div id="fragFoot"></div></div>
   <div id="cap" class="screen" hidden>
-    <button class="big alt sm" id="capBack">← Mapa</button>
+    <button class="round small scrBack" id="capBack" aria-label="Fechar">✕</button>
     <div id="capTop"></div>
     <h2 id="capTitle">Laboratório de Cápsulas</h2>
     <div id="capCards"></div>
@@ -6096,5 +6097,32 @@ function pickStarter(){
 showMap(); showCity(); if(saveNote) toast(saveNote); if(needStarter) playSt('prologo',['intro'], pickStarter);
 if(save.farm){ const out = collectFarm(save, Date.now()); if(out && (out.runs || out.capped)){ persist(); showFarmSummary(out, 'Bem-vindo de volta!'); renderMap(); } }
 addEventListener('resize', ()=>{ cityBg = null; ccv.width = W*K; ccv.height = H*K; if(!$('map').hidden) renderMap(); if(!$('mon').hidden) drawMonStage(); });
+
+// ===== Atalhos de teclado =====
+// Esc: fecha a tela aberta e volta para a cidade (na batalha: pausa/continua) · M Monstros · E Equipe · L Livro · B Bolsa · R Ranking · F Fragmentos · P Provação · G Aventura · O Opções
+// Na batalha: Espaço = Auto · X = velocidade ×1/×2 · 1/2/3 = habilidade
+const isShown = el => el && !el.hidden && el.offsetParent !== null;
+function closeTop(){ // fecha o painel visível mais alto clicando no X dele
+  const cands = [...document.querySelectorAll('#wrap .ov, #wrap .screen, #rpop, .devbox')].filter(el=>el.id!=='city' && isShown(el));
+  cands.sort((a,b)=>(+getComputedStyle(b).zIndex||0)-(+getComputedStyle(a).zIndex||0));
+  for(const el of cands){ const x = [...el.querySelectorAll('button')].find(b=>isShown(b) && (/(Back|Close|X)$/.test(b.id) || b.classList.contains('scrBack') || b.getAttribute('aria-label')==='Fechar' || b.id==='rpopOk'));
+    if(x){ x.click(); return true; } }
+  return false; }
+addEventListener('keydown', e=>{
+  if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
+  if(!$('talk').hidden || !$('starter').hidden || !$('load').hidden) return;
+  const inBattle = B && !B.over && $('city').hidden && $('map').hidden && [...document.querySelectorAll('#wrap .screen')].every(el=>el.hidden || el.id==='city');
+  const k = e.key;
+  if(k==='Escape'){ e.preventDefault();
+    if(inBattle && $('panel').hidden){ $('paused').hidden ? BS.pause() : BS.resume(); return; }
+    for(let i=0;i<8 && closeTop();i++){}
+    if($('city').hidden && !(B && !B.over)){ document.querySelectorAll('#wrap .screen, #wrap .ov').forEach(el=>{ if(el.id!=='city') el.hidden = true; }); $('res').hidden = true; B = null; showSkills(null); showCity(); renderCityHud(); }
+    return; }
+  if(inBattle){ if(k===' '){ e.preventDefault(); BS.setAuto(!auto); } else if(k==='x'||k==='X') BS.setSpeed(speed===1?2:1);
+    else if(/^[1-4]$/.test(k)){ const b = $('skills').children[+k-1]; if(b) b.click(); } return; }
+  if($('city').hidden) return;
+  const go = {m:'mon', e:'team', l:'dex', b:'bag', r:'rank', f:'frag', p:'prov', g:'map', o:'opt'}[k.toLowerCase()];
+  if(go){ const btn = document.querySelector(`#city [data-go="${go}"]`); if(btn) btn.click(); else goTo(go); }
+});
 requestAnimationFrame(frame);
 </script>
