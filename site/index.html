@@ -3713,7 +3713,7 @@ $('teamBtn').onclick = ()=>{ if(STAGES[curStage] && STAGES[curStage].bglobal){ $
   if(STAGES[curStage] && STAGES[curStage].weekly){ $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; showCity(); openProv(); return openWeekly(); }
   if(STAGES[curStage] && STAGES[curStage].expl){ $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; showMap(); if(fromCity) showCity(); return openExpl(STAGES[curStage].room); }
   if(curStage==='arena'){ $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; showMap(); if(fromCity) showCity(); return openArena('desafiar'); }
-  $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; setMode(STAGES[curStage].elite); showMap(); { const ri = riOf(curStage); if(ri!=null && ri!=='D' || STAGES[curStage].dungeon) openTrail(STAGES[curStage].dungeon ? 'D' : ri); } openRegion(riOf(curStage), curStage); };
+  $('res').hidden=true; B=null; showSkills(null); $('order').textContent=''; setMode(STAGES[curStage].elite); showMap(); openRegion(riOf(curStage), curStage); };
 $('teamOpen').onclick = $('rpTeam').onclick = ()=>{ team = save.team.filter(sp=>save.owned[sp]); buildCards(); $('sel').hidden=false; };
 
 // ===== Tela de Monstros (nível, intimidade, habilidades, transformação) =====
@@ -4828,9 +4828,9 @@ mcv.addEventListener('click', e=>{
   const n = NODES.find(n=>Math.hypot((x-n.x)/1.5, y-n.y) < 100); if(!n) return;
   if(n.key==='cidade') return showCity();
   if(n.region==null) return toast('Esta região chega em uma próxima atualização.');
-  if(n.region==='D') return regionOpen('D') ? openTrail('D') : toast('A Dungeon abre ao vencer a Caverna Ecoante 5.');
+  if(n.region==='D') return regionOpen('D') ? openRegion('D') : toast('A Dungeon abre ao vencer a Caverna Ecoante 5.');
   if(!regionOpen(n.region)) return toast(elite==='p' ? `O Pesadelo desta região abre ao vencer ${REGIONS[n.region].name} 1 na Elite.` : elite ? `A Elite desta região abre ao vencer ${REGIONS[n.region].name} 1 na Comum.` : `Vença ${REGIONS[n.region-1].name} 5 para liberar.`);
-  openTrail(n.region);
+  openRegion(n.region);
 });
 function setMode(e){ elite = e; $('modeN').classList.toggle('on',!e); $('modeE').classList.toggle('on',e===true); $('modeP').classList.toggle('on',e==='p'); renderMap(); }
 $('modeP').onclick = ()=>{ if(!cleared(save,'praia-e1')) return toast('O Pesadelo abre ao vencer a Praia das Conchas 1 na Elite.'); setMode('p'); };
