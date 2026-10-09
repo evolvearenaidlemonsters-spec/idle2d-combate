@@ -372,3 +372,11 @@ A Beatriz pediu: **toda atualização nova vai para o link dos amigos**. Depois 
 - Intimidade: intNeed = 20+10·Nv, Fruta +10; abaixo do limite só aparece a Fruta, no limite só o Pergaminho.
 - Ícones novos ui/ic_mon, ic_team, ic_dex na barra da cidade.
 - Cápsula: metades se separam + anel + faíscas + cartas viram; animação da cápsula ignora "reduzir movimento".
+
+## 09/10 — v8.7 (link + artifact)
+- Cidade agora é a pintura city/cena.jpg (2576×1247, mundo = pixels da imagem), câmera CZ=.62 seguindo o jogador.
+- Profundidade: lista OCC (recortes da própria imagem: prédios, árvores, postes, pedestais, fonte, barraca) com linha de base; entram na ordenação por y e cobrem quem passa atrás.
+- Sombras de contato macias (softShadow, luz de cima-esquerda), escala por perspectiva PK(y), luz quente soft-light por cima.
+- Colisão: BLOCK_R (retângulos) + BLOCK_C (círculos). Caminho com A* (findPath, grade 20px) para contornar a praça.
+- Pontos: Loja, Cápsula, Centro de Monstros, Arena, Galeria dos Campeões (rank), Portão da Aventura (barraca vermelha). Nomes e placas desenhados por último.
+- CITYIMG ficou só com b_4 (usado no mapa-múndi).

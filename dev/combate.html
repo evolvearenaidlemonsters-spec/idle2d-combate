@@ -3171,7 +3171,7 @@ for(const k of Object.keys(LIB_KIND)) for(let t=1;t<=4;t++) ICON_FILE[libKey(k,t
 const ico = (k, cls='') => ICON_FILE[k] ? `<img class="ico ${cls}" src="ui/${ICON_FILE[k]}.png" alt="">` : `<i class="dot" style="background:${(ITEMS[k]||{}).color||'#ffc23d'}"></i>`;
 // ===== Personagens (arte final): sprites recortados em char/. Sem a imagem, cai no desenho provisório =====
 const CHAR = {};
-for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`), 'rideM','rideF','rideG','rideS']){
+for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`), 'rideM','rideF','rideS']){
   const im = new Image(); im.onload = ()=>{ bg = null; if(typeof cityBg!=='undefined') cityBg = null; if(!$('starter').hidden) pickStarter(); }; im.src = `char/${k}.png`; CHAR[k] = im; }
 const heroKey = view => `hero${(save && save.costume) || (save && save.hero) || 'M'}_${view}`; // 0 frente · 1 três-quartos · 2 lado (andando) · 3 costas · 4 costas arremessando · 5 costas comemorando
 const heroPose = view => { const k = heroKey(view), im = CHAR[k]; return im && im.complete && im.naturalWidth ? k : heroKey(3); };
@@ -4163,7 +4163,7 @@ setInterval(()=>{ if($('shop').hidden || shopTab!=='comum') return; if(Math.floo
 
 // ===== Cidade =====
 const CW = 2576, CH = 1247;                 // mundo = a pintura da cidade (city/cena.jpg), em pixels da imagem
-const CZ = .62;                             // zoom da câmera (segue o jogador)
+const CZ = .465;                            // zoom da câmera (segue o jogador)
 const PK = y => 1.02 + .26*(y/CH);           // perspectiva: mais longe (em cima) = menor
 const CS = (g,x,y,f)=>{ const k = PK(y); g.save(); g.translate(x,y); g.scale(k,k); g.translate(-x,-y); f(); g.restore(); }; // perspectiva: mais longe (em cima) = menor
 const ccv = $('citycv'), cctx = ccv.getContext('2d');
@@ -4173,7 +4173,7 @@ const BUILDINGS = [
   {id:'cap',   name:'Brinquedo em Cápsula', hit:[765,860,200,340], npc:{x:1000,y:1130}, tag:{x:865, y:850}},
   {id:'mon',   name:'Centro de Monstros',   hit:[2120,380,456,600],npc:{x:2280,y:1010}, tag:{x:2300,y:370}},
   {id:'arena', name:'Arena',                hit:[2030,0,546,250],  npc:{x:2200,y:300}, tag:{x:2200,y:40}},
-  {id:'rank',  name:'Galeria dos Campeões', hit:[1090,390,240,250],npc:{x:1210,y:680}, tag:{x:1210,y:380}},
+  {id:'rank',  name:'Galeria dos Campeões', hit:[1090,390,240,250],npc:{x:1210,y:680}, tag:{x:1210,y:380}, noTag:true},
   {id:'map',   name:'Portão da Aventura',   hit:[2140,1030,180,170],npc:{x:2140,y:1215}, tag:{x:2220,y:1010}, portal:true},
 ];
 // Onde não dá para andar: retângulos [x,y,w,h] e círculos [x,y,r] (prédios, árvores, canteiros, pedestais)
@@ -4205,10 +4205,10 @@ const OCC = [ // shape: ['p', [x,y,...]] polígono | ['c', x,y,r] círculo | ['e
   {base:1105, s:[['r',605,925,135,180]]},                                                       // barraquinha
   {base:955, s:[['p',[2125,470, 2310,375, 2576,430, 2576,1010, 2440,1030, 2440,960, 2135,955]]]}, // Centro de Monstros
   {base:255, s:[['r',2030,0,546,255]]},                                                         // Arena
-  {base:640, s:[['e',1210,560,112,82], ['r',1160,395,100,170]]},                                // pedestal de cima
-  {base:905, s:[['e',890,840,112,78], ['r',845,690,95,160]]},                                   // pedestal esquerdo
-  {base:905, s:[['e',1600,840,112,78], ['r',1555,685,110,160]]},                                // pedestal direito
-  {base:1160, s:[['e',1210,1085,112,78], ['r',1150,915,120,180]]},                              // pedestal de baixo
+  {base:640, s:[['e',1210,560,112,82]]},                                // pedestal de cima
+  {base:905, s:[['e',890,840,112,78]]},                                   // pedestal esquerdo
+  {base:905, s:[['e',1600,840,112,78]]},                                // pedestal direito
+  {base:1160, s:[['e',1210,1085,112,78]]},                              // pedestal de baixo
   {base:905, s:[['e',1210,850,125,62], ['r',1165,670,90,190]]},                                 // fonte
   {base:1215, s:[['p',[2180,1000, 2320,1000, 2330,1110, 2320,1200, 2180,1200, 2170,1110]]]},    // barraca vermelha
   ...[[565,485,72,590],[840,530,65,640],[250,880,95,990],[435,880,68,985],[690,860,72,965],[1580,680,58,770],[1580,1000,68,1095],[1690,935,48,975],[575,1175,85,1247],[230,1110,105,1247],[2530,460,62,560],[2510,955,40,1040],[30,560,80,660],[460,50,55,140]]
@@ -4226,6 +4226,19 @@ function drawOcc(g, o){ if(!okImg(CENA)) return; g.save(); occPath(g, o.s); g.cl
 function softShadow(g, x, y, w, a=.38){ const gr = g.createRadialGradient(x+4, y+2, 1, x+4, y+2, w); gr.addColorStop(0, `rgba(20,16,30,${a})`); gr.addColorStop(.6, `rgba(20,16,30,${a*.45})`); gr.addColorStop(1, 'rgba(20,16,30,0)');
   g.save(); g.translate(x+4, y+2); g.scale(1, .34); g.translate(-(x+4), -(y+2)); g.fillStyle = gr; g.beginPath(); g.arc(x+4, y+2, w, 0, 7); g.fill(); g.restore(); }
 function drawCityGround(){ return {c:CENA}; }
+// Altares da praça: o Top 1 de cada ranking fica em cima de um pedestal (atualiza a cada 5 s)
+const ALTARS = [{tab:'poder', t:'Poder', x:1210, y:518, base:641}, {tab:'livro', t:'Livro', x:877, y:808, base:906}, {tab:'nivel', t:'Nível', x:1623, y:808, base:906}, {tab:'arena', t:'Arena', x:1207, y:1048, base:1161}];
+let altarTop = null, altarT = 0;
+function altarRows(){ if(!altarTop || performance.now()-altarT > 5000){ altarT = performance.now(); try{ altarTop = ALTARS.map(a=>rankRows(a.tab)[0]); }catch(e){ altarTop = []; } } return altarTop; }
+function drawAltar(g, a, r, ts){ if(!r) return; const k = PK(a.y)*1.2, x = a.x, y = a.y;
+  // luz dourada subindo do pedestal (destaque do campeão)
+  g.save(); g.globalCompositeOperation = 'lighter'; const gl = g.createRadialGradient(x, y-40, 6, x, y-40, 110); gl.addColorStop(0, `rgba(255,214,120,${.20+.06*Math.sin(ts/600+x)})`); gl.addColorStop(1, 'rgba(255,214,120,0)'); g.fillStyle = gl; g.fillRect(x-110, y-150, 220, 220); g.restore();
+  softShadow(g, x+20, y, 46*k, .3);
+  const f = r.team && r.team[0];
+  const Z = (cx,cy,fn)=>{ g.save(); g.translate(cx,cy); g.scale(k,k); g.translate(-cx,-cy); fn(); g.restore(); };
+  Z(x+22, y, ()=>drawTrainer(g, x+22, y, {sprite: r.me ? undefined : `tr_${r.id%6}`, noShadow:true}));
+  if(f && SPECIES[f.sp]) Z(x-36, y+8, ()=>drawCreature(g, f.sp, x-36, y+8, .8, 1, {form:f.form, noShadow:true}));
+}
 function drawBuilding(){}
 function label(g, x, y, txt, color){ g.font='800 15px "Baloo 2",sans-serif'; g.textAlign='center'; g.lineWidth=4; g.strokeStyle='#0b1a22'; g.strokeText(txt,x,y); g.fillStyle=color; g.fillText(txt,x,y); }
 // caminho pelo cenário (A* numa grade de 20px), para contornar fonte, pedestais e árvores
@@ -4292,6 +4305,10 @@ function renderCity(ts){
   // personagens + recortes do cenário, ordenados pela linha do chão
   const items = [], late = [];  // nomes e balões vão por cima de tudo
   for(const o of OCC) items.push({y:o.base, d:()=>drawOcc(g,o)});
+  const tops = altarRows(); ALTARS.forEach((a,i)=>{ const r = tops[i]; if(!r) return; items.push({y:a.base, d:()=>drawAltar(g,a,r,ts)});
+    late.push(()=>{ const yy = a.y - 150*PK(a.y); g.font = '800 17px "Baloo 2",sans-serif'; g.textAlign = 'center'; const t1 = `Top 1 ${a.t}`, t2 = r.name, tw = Math.max(g.measureText(t1).width, g.measureText(t2).width)+22;
+      g.fillStyle = '#2a1606e0'; g.strokeStyle = '#ffd25a'; g.lineWidth = 2; g.beginPath(); g.roundRect(a.x-tw/2, yy-38, tw, 44, 9); g.fill(); g.stroke();
+      g.fillStyle = '#ffd25a'; g.fillText(t1, a.x, yy-20); g.fillStyle = r.me ? '#7fe0ff' : '#fff'; g.fillText(t2, a.x, yy); }); });
   const who = (x,y,f) => items.push({y, d:()=>{ softShadow(g, x, y, 30*PK(y)); f(); }});
   for(const w of WANDER){ who(w.x, w.y, ()=>{ CS(g,w.x,w.y,()=>drawTrainer(g,w.x,w.y,{shirt:w.shirt,cap:w.cap,hair:w.hair,face:w.face,dir:w.dir,walk:w.walk||0,step:w.walk?Math.sin(w.walk/90)*6:0, sprite:`tr_${WANDER.indexOf(w)%6}`, noShadow:true})); late.push(()=>{ label(g,w.x,w.y-104*PK(w.y),w.name,w.real?'#ffd25a':'#bff4ff'); if(w.sayT>0) bubble(g, w.x, w.y-122*PK(w.y), w.say); }); });
     who(w.px, w.py, ()=>{ CS(g,w.px,w.py,()=>drawCreature(g,w.sp,w.px,w.py,.72,w.face,{form:w.form, noShadow:true})); }); }
@@ -4301,7 +4318,7 @@ function renderCity(ts){
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
   late.forEach(f=>f());
   // placas dos lugares
-  for(const b of BUILDINGS){ g.font='800 22px "Baloo 2",sans-serif'; g.textAlign='center'; const tw = g.measureText(b.name).width+24, near = nearB===b;
+  for(const b of BUILDINGS){ if(b.noTag) continue; g.font='800 22px "Baloo 2",sans-serif'; g.textAlign='center'; const tw = g.measureText(b.name).width+24, near = nearB===b;
     g.fillStyle = near ? '#ffd25ae6' : '#0c2533d8'; g.beginPath(); g.roundRect(b.tag.x-tw/2, b.tag.y-24, tw, 32, 8); g.fill(); g.fillStyle = near ? '#3a2000' : '#ffd25a'; g.fillText(b.name, b.tag.x, b.tag.y); }
   // luz quente do fim de tarde por cima de tudo (une personagens e pintura)
   g.save(); g.globalCompositeOperation = 'soft-light'; const lg = g.createLinearGradient(0,0,CW,CH); lg.addColorStop(0,'rgba(255,220,160,.22)'); lg.addColorStop(1,'rgba(60,40,120,.18)'); g.fillStyle = lg; g.fillRect(0,0,CW,CH); g.restore();
@@ -4311,6 +4328,7 @@ ccv.addEventListener('pointerdown', e=>{
   const r = ccv.getBoundingClientRect(), x = (e.clientX-r.left)*W/r.width/CZ + cam.x, y = (e.clientY-r.top)*H/r.height/CZ + cam.y;
   const w = WANDER.find(w=>Math.abs(x-w.x)<24 && y<w.y+6 && y>w.y-110);
   if(w) return toast(w.real ? `${w.name} · jogador real · Poder ${w.power} · Nv ${w.lv}` : `${w.name} · Poder ${w.power} · treinador da Arena`);
+  const al = ALTARS.find(a=>Math.hypot(x-a.x, y-(a.y-60))<80); if(al){ rankTab = al.tab; me.tx = al.x; me.ty = al.base+30; me.after = 'rank'; return; }
   const b = BUILDINGS.find(b=>{ const [hx,hy,hw,hh] = b.hit; return (x>hx&&x<hx+hw&&y>hy&&y<hy+hh) || Math.hypot(x-b.tag.x,y-b.tag.y)<70; });
   if(b){ me.tx = b.npc.x; me.ty = b.npc.y; me.after = b.id; return; }
   me.tx = x; me.ty = y; me.after = null;
@@ -5327,22 +5345,22 @@ function capDecor(){
   $('capFeat').innerHTML = `<h4>Prêmio Destaque</h4><div>${feat.map(sp=>`<span title="${SPECIES[sp].name}"><img alt="" src="${artSrc(sp)}"></span>`).join('')}</div><small>Grau A na Cápsula Rara · Missão de hoje: cápsulas ${Math.min(3,dailyS().caps||0)}/3</small>`;
 }
 // ===== Ranking (Poder · Arena · Nível · Longevidade de Instância) =====
-const RANK_TABS = [['poder','Poder'],['arena','Arena'],['nivel','Nível'],['inst','Longevidade de Instância'],['online','Jogadores Reais']];
+const RANK_TABS = [['poder','Poder'],['arena','Arena'],['nivel','Nível'],['livro','Livro'],['inst','Longevidade de Instância'],['online','Jogadores Reais']];
 let rankTab = 'poder', RANK_NPC = null;
 const stageLabel = n => n<=0 ? 'Nenhuma' : STAGES[STAGE_ORDER[Math.min(n,STAGE_ORDER.length)-1]].name;
 function rankNpcs(){ if(RANK_NPC) return RANK_NPC; RANK_NPC = [];
   for(let id=1; id<ARENA_SIZE; id++){ const n = npcOf(id), lv = n.team[0].prog.lv;
-    RANK_NPC.push({id, name:n.name, team:n.team.map(f=>({sp:f.sp, form:f.prog.form})), poder:npcPower(n), nivel:Math.max(1, Math.round(lv*1.1 + id%5)), inst:clampN(Math.round(lv*0.95 + id%4), 1, STAGE_ORDER.length)}); }
+    RANK_NPC.push({id, name:n.name, team:n.team.map(f=>({sp:f.sp, form:f.prog.form})), poder:npcPower(n), nivel:Math.max(1, Math.round(lv*1.1 + id%5)), inst:clampN(Math.round(lv*0.95 + id%4), 1, STAGE_ORDER.length), livro:clampN(Math.round(lv*1.5 + (id*7)%11), 1, DEX.length)}); }
   return RANK_NPC; }
 function myInst(){ let n = 0; STAGE_ORDER.forEach((id,i)=>{ if(cleared(save,id)) n = i+1; }); return n; }
 function rankRows(tab){
-  const a = arenaState(save, Date.now()), me = {me:true, name:save.name||'Você', team:myForm(), poder:teamPower(), nivel:save.trainer.lv, inst:myInst()};
+  const a = arenaState(save, Date.now()), me = {me:true, name:save.name||'Você', team:myForm(), poder:teamPower(), nivel:save.trainer.lv, inst:myInst(), livro:Object.values(save.dex||{}).filter(v=>v>=2).length};
   if(tab==='online'){ const L = (ONLINE_RANK||[]).map((o,i)=>({id:i, name:o.nick, team:[{sp:SPECIES[o.lead]?o.lead:save.team[0], form:o.lead_form||0}], val:o.power, lv:o.lv, me:!!(CLOUD.nick && o.nick===CLOUD.nick)})); if(!L.some(r=>r.me)) L.push({...me, val:me.poder, lv:me.nivel, name:me.name+(CLOUD.nick?'':' (sem conta)')}); L.sort((x,y)=>y.val-x.val); return L; }
   if(tab==='arena') return a.ladder.map((id,i)=>{ const o = id==='me' ? me : rankNpcs()[id-1]; return {...o, val:i+1}; });
   const rows = [...rankNpcs().map(o=>({...o})), me];
   rows.sort((x,y)=>(y[tab]-x[tab]) || (y.poder-x.poder)); rows.forEach(r=>r.val = r[tab]); return rows;
 }
-const rankVal = (tab, r) => tab==='online' ? `Poder ${r.val} · Nv ${r.lv}` : tab==='poder' ? `Poder ${r.val}` : tab==='arena' ? `Posição N.${r.val}` : tab==='nivel' ? `Treinador Nv ${r.val}` : `${stageLabel(r.val)} <small>(${r.val}/${STAGE_ORDER.length})</small>`;
+const rankVal = (tab, r) => tab==='online' ? `Poder ${r.val} · Nv ${r.lv}` : tab==='poder' ? `Poder ${r.val}` : tab==='arena' ? `Posição N.${r.val}` : tab==='nivel' ? `Treinador Nv ${r.val}` : tab==='livro' ? `Livro: ${r.val} obtidas` : `${stageLabel(r.val)} <small>(${r.val}/${STAGE_ORDER.length})</small>`;
 function openRank(){ $('rank').hidden = false; renderRank(); }
 function renderRank(){
   $('rankTop').innerHTML = `<span class="pill">${ico('dia')}${save.diamonds||0}</span><span class="pill">${ico('gold')}${save.gold}</span>`;
@@ -5363,7 +5381,7 @@ function renderRank(){
     row.innerHTML = `<span class="md">${i+1}</span>`; row.append(portraitC(r.team[0].sp,1,r.team[0].form)); row.insertAdjacentHTML('beforeend', `<span class="nm">${r.name}<small>${rankVal(rankTab,r)}</small></span><span></span>`); L.append(row); }
   const me = rows[myPos-1];
   $('rankMe').innerHTML = `<span class="md">${myPos}</span><span class="nm"><span>Sua posição: ${myPos}º de ${rows.length}</span><small>${rankVal(rankTab, me)}</small></span>`;
-  $('rankInfo').textContent = {poder:'Soma do Poder dos 3 monstros da equipe atual.', arena:'Posição atual no ranking da Arena.', nivel:'Nível do treinador.', inst:'Instância Comum mais avançada já vencida.', online:ONLINE_RANK ? 'Amigos com conta no jogo, pelo Poder da equipe.' : 'Carregando jogadores…'}[rankTab];
+  $('rankInfo').textContent = {poder:'Soma do Poder dos 3 monstros da equipe atual.', arena:'Posição atual no ranking da Arena.', nivel:'Nível do treinador.', livro:'Monstros obtidos no Livro.', inst:'Instância Comum mais avançada já vencida.', online:ONLINE_RANK ? 'Amigos com conta no jogo, pelo Poder da equipe.' : 'Carregando jogadores…'}[rankTab];
   if(rankTab==='online' && !ONLINE_RANK) loadOnlineRank();
 }
 
