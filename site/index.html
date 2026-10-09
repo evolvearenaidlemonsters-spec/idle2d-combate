@@ -391,7 +391,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 #newC{border:2px solid var(--gold);border-radius:10px;padding:6px 10px;margin-bottom:10px;font-weight:800;color:var(--gold)}
 #rot{position:fixed;left:16px;right:16px;top:12px;text-align:center;font-size:14px;color:var(--muted)}
 @media (orientation:landscape){#rot{display:none}}
-@media (prefers-reduced-motion:reduce){*:not(#capRev):not(#capRev *){transition:none!important;animation:none!important}}
+.reduceMotion *:not(#capRev):not(#capRev *){transition:none!important;animation:none!important}
 /* Resultado animado: caixa entra, estrelas caem uma a uma, prêmios pulam, XP enche */
 #res:not([hidden]) .box{animation:boxIn .35s cubic-bezier(.2,1.4,.4,1) both}
 @keyframes boxIn{from{transform:scale(.8);opacity:0}}
@@ -1564,7 +1564,7 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 @keyframes skRing{to{transform:rotate(360deg)}}
 .sk.full{animation:skHop 1.2s ease-in-out infinite}
 @keyframes skHop{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@media (prefers-reduced-motion:reduce){#combo.burst .bar,#combo.burst .hexn,.sk.full,.sk.full::before,.sk.full .hex .shine{animation:none!important}}
+.reduceMotion #combo.burst .bar,.reduceMotion #combo.burst .hexn,.reduceMotion .sk.full,.reduceMotion .sk.full::before,.reduceMotion .sk.full .hex .shine{animation:none!important}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -1641,7 +1641,7 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 
   <div class="ov" id="opt" hidden><div class="box optBox"><h2>Opções</h2><button class="round small scrBack" id="optBack" aria-label="Fechar">✕</button>
     <section><h3>Conta e nuvem</h3><div id="optCloud"></div></section>
-    <section><h3>Som</h3><div class="row"><button id="optSnd">Som: desligado</button></div><p class="dim">Efeitos leves nas batalhas. Começa desligado.</p></section>
+    <section><h3>Som</h3><div class="row"><button id="optSnd">Som: desligado</button><button id="optAnim">Animações: completas</button></div><p class="dim">Efeitos leves nas batalhas. Começa desligado.</p></section>
     <section><h3>Relatar problema</h3><textarea id="optRep" maxlength="1000" rows="3" placeholder="Conte o que aconteceu e em qual tela."></textarea><div class="row"><button class="big" id="optRepGo">Enviar</button></div></section>
   </div></div>
   <div class="ov" id="sum" hidden><div class="box"><h2 id="sumTitle"></h2><div id="sumBody"></div><div class="row"><button class="big" id="sumOk">OK</button></div></div></div>
@@ -2261,7 +2261,7 @@ const lowestRatio = a => a.slice().sort((x,y)=>ratio(x)-ratio(y)||tie(x,y))[0];
 // foes (opcional): time fixo [{sp, prog}] em uma onda só — usado na Arena
 function newBattle(team, stageId, lv={}, foes=null){
   const b = {v:RULES_VERSION, stage:stageId, t:0, wave:0, allies:team.map((sp,i)=>mkUnit(sp,'A',i,lv[sp]||1)), foes:[], custom:foes, actionsInWave:0, actions:0, over:null, log:[]};
-  startWave(b); return b;
+  b.allies.forEach(primeSupreme); startWave(b); return b;
 }
 // Inimigo de fase: atributos × dificuldade da fase (dm). Velocidade não muda.
 function foeUnit(stageId, e, i){ const f = parseFoe(e), u = mkUnit(f.sp,'E',i,f.lv,f.sub), dm = (STAGES[stageId]||{}).dm || 1;
@@ -2270,10 +2270,12 @@ function foeUnit(stageId, e, i){ const f = parseFoe(e), u = mkUnit(f.sp,'E',i,f.
 function startWave(b){
   b.foes = b.custom ? b.custom.map((f,i)=>mkUnit(f.sp,'E',i,f.prog))
     : STAGES[b.stage].waves[b.wave].map((e,i)=>foeUnit(b.stage, e, i));
-  b.actionsInWave = 0;
+  b.foes.forEach(primeSupreme); b.actionsInWave = 0;
   for(const u of all(b)) if(u.hp>0) u.next = b.t + TICK/stat(u,'spd');
 }
 const all = b => b.allies.concat(b.foes);
+// Supremo (a habilidade de maior recarga, 3+) começa a luta recarregando: ninguém abre a batalha com ele pronto
+function primeSupreme(u){ const sup = u.skills.reduce((m,k)=>(SKILLS[k].cd||0)>(SKILLS[m].cd||0)?k:m, u.skills[0]); if(sup && (SKILLS[sup].cd||0)>=3) u.cd[sup] = SKILLS[sup].cd; }
 function current(b){ return live(all(b)).sort((x,y)=>x.next-y.next||tie(x,y))[0]; }
 function preview(b,n){
   const q = live(all(b)).map(u=>({u,n:u.next})), out=[];
@@ -3119,7 +3121,10 @@ const W=1100,H=520, wrap=document.getElementById('wrap'), cv=document.getElement
 const $ = id=>document.getElementById(id);
 const POS = {A:[[275,250],[395,325],[520,430]], E:[[690,160],[815,245],[935,330]]}; // duas diagonais paralelas, frente a frente (referência do vídeo)
 const BOSS_POS = [815,245];
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Animações reduzidas: escolha do jogador em Opções (desligada por padrão). Não segue mais a configuração do Windows/celular,
+// que muitas vezes vem ligada sem a pessoa saber e apagava todas as animações da luta.
+let reduce = (()=>{ try{ return localStorage.getItem('idle2d.reduce')==='1'; }catch(e){ return false; } })();
+document.documentElement.classList.toggle('reduceMotion', reduce);
 let K=1, bg=null;
 
 // No computador (mouse + tela larga) o palco não ocupa a tela inteira: fica menor e centralizado, como se a câmera estivesse mais longe.
@@ -3386,7 +3391,8 @@ function render(ts){
       ctx.rotate(tt/900); ctx.setLineDash([16*sc,12*sc]); ctx.lineWidth = 4; ctx.strokeStyle = '#ffffffcc'; ctx.beginPath(); ctx.arc(0,0,R0*.78,0,7); ctx.stroke();
       ctx.rotate(-tt/450); ctx.setLineDash([]); ctx.lineWidth = 3; for(let i=0;i<3;i++){ const a = i*Math.PI*2/3; ctx.beginPath(); ctx.arc(0,0,R0*1.12,a,a+.6); ctx.stroke(); } ctx.restore(); }
     if(pending && u.side==='A' && u.hp>0){ ctx.save(); ctx.translate(x0,y0); ctx.scale(1,.42); ctx.strokeStyle='#ffc23d'; ctx.lineWidth=4; ctx.setLineDash([8,6]); ctx.beginPath(); ctx.arc(0,0,44,0,7); ctx.stroke(); ctx.restore(); }
-    drawCreature(ctx, u.sp, x, y, sc*(ent<1?Math.max(.05,easeBack(ent)):1), u.side==='A'?1:-1, {noShadow:ent<1, box:[130*sc*(ent<1?Math.max(.05,easeBack(ent)):1),110*sc*(ent<1?Math.max(.05,easeBack(ent)):1)], form:u.form, back:u.side==='A', bob: reduce?0:Math.sin(ts/380+u.slot*1.7+(u.side==='E'?2:0))*2, flash:v.flash>0 && !(v.dt>120), dark:v.dt>120 ? Math.min(1,(v.dt-120)/200) : 0, alpha:v.alpha});
+    const pz = v.pulse>0 ? 1 + .18*Math.sin((1-v.pulse/240)*Math.PI) : 1; // golpe recebido: o monstro dá um "pulo" de escala
+    drawCreature(ctx, u.sp, x, y, sc*pz*(ent<1?Math.max(.05,easeBack(ent)):1), u.side==='A'?1:-1, {noShadow:ent<1, box:[130*sc*(ent<1?Math.max(.05,easeBack(ent)):1),110*sc*(ent<1?Math.max(.05,easeBack(ent)):1)], form:u.form, back:u.side==='A', bob: reduce?0:Math.sin(ts/380+u.slot*1.7+(u.side==='E'?2:0))*2, flash:v.flash>0 && !(v.dt>120), dark:v.dt>120 ? Math.min(1,(v.dt-120)/200) : 0, alpha:v.alpha});
     // barra de vida
     const bw = u.boss?120:78, bx = x0-bw/2+(u.boss?10:18), by = y0 + 8; // barra fina sob os pés, como no vídeo
     ctx.globalAlpha = v.alpha*ent*(u.boss?0:1);
@@ -3415,7 +3421,7 @@ function render(ts){
     ctx.fillStyle=`rgba(4,8,18,${anim.dim})`; ctx.fillRect(0,0,W,H);
     ctx.save(); ctx.globalAlpha = Math.min(1, anim.dim*1.5); const gl = ctx.createRadialGradient(x0,y0-40,10,x0,y0-40,120*sc); gl.addColorStop(0,(TYPES[SKILLS[anim.ev.skill].type]||'#fff')+'aa'); gl.addColorStop(1,'#0000'); ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(x0,y0-40,120*sc,0,7); ctx.fill(); ctx.restore();
     drawCreature(ctx, u.sp, x0+v.dx, y0+v.dy, sc, u.side==='A'?1:-1, {box:[130*sc,110*sc], form:u.form, back:u.side==='A'});
-    if(anim.el < ULT_PRE+300) drawCastCard(anim); }
+  }
   // projétil de habilidade especial
   if(anim && anim.proj){ const p=anim.proj, R = anim.strong?15:11;
     if(p.F.tr==='bolt') drawBolt(p.sx, p.sy, p.x, p.y, p.color);
@@ -3488,7 +3494,7 @@ function frameBody(ts){
     const d = dt*speed;
     for(const f of floaters){ f.life-=d; if(f.kind==='dmg'){ f.age=(f.age||0)+d; const q=Math.min(1,f.age/900), e=1-Math.pow(1-q,3); f.y=f.y0-f.rise*e; f.x=f.x0+f.drift*e; } else f.y-=d*0.04; } floaters = floaters.filter(f=>f.life>0);
     for(const b of bursts) b.t+=d; bursts = bursts.filter(b=>b.t<380); for(const b of beams) b.t+=d; beams = beams.filter(b=>b.t<620); if(shake>0) shake-=d; if(flashW>0) flashW-=d;
-    for(const u of all(B)){ const v=vis(u); BS.animateHp(v, d); if(v.flash>0) v.flash-=d; if(v.kb>0) v.kb=Math.max(0,v.kb-d/240);
+    for(const u of all(B)){ const v=vis(u); BS.animateHp(v, d); if(v.flash>0) v.flash-=d; if(v.pulse>0) v.pulse-=d; if(v.kb>0) v.kb=Math.max(0,v.kb-d/240);
       if(v.hp<=0 && v.alpha>0){ v.dt=(v.dt||0)+d; // derrota: pisca, vira silhueta, afunda e some
         if(!v.puff && v.dt>260){ v.puff=1; const [px,py]=posOf(u); spark(px, py-30*scaleOf(u), ['#3a3550','#6a6488','#ffffff'], 16, {speed:.18, up:.05, r:7, life:700, g:-.0002, w:50, h:30}); if(u.side==='E') orbs.push({x:px, y:py-50*scaleOf(u), t:0, sx:px, sy:py-50*scaleOf(u)}); }
         if(v.dt>320) v.alpha=Math.max(0,1-(v.dt-320)/520); } }
@@ -3641,7 +3647,7 @@ function runAnim(d){
     for(const h of a.ev.hits){
       const v = vis(h.u), [hx,hy] = posOf(h.u), top = hy-70*scaleOf(h.u);
       if(h.dmg!=null && h.u.hp < v.hp) v.barHold = 260; v.hp = h.u.hp; if(h.u.hp>0 || h.heal!=null || h.buff) v.alpha = 1;
-      if(h.dmg!=null){ v.flash = 180; const big = a.ult || h.m>1 || h.crit; sfx(h.crit?'crit':h.m>1?'super':'hit'); if(h.ko) setTimeout(()=>sfx('ko'), 120);
+      if(h.dmg!=null){ v.flash = 220; v.pulse = 240; const big = a.ult || h.m>1 || h.crit; sfx(h.crit?'crit':h.m>1?'super':'hit'); if(h.ko) setTimeout(()=>sfx('ko'), 120);
         { const ddx = hx-x0, ddy = hy-y0, dl = Math.hypot(ddx,ddy)||1; v.kbx = ddx/dl*(big?26:16); v.kby = ddy/dl*(big?12:8); v.kb = 1; }
         hitStop = Math.max(hitStop, big?110:55); { const F = tfx(sk.type), n = Math.round(F.n*(big?1.6:1)*(a.strong?1.2:1));
           spark(hx, hy-40*scaleOf(h.u), ['#fff', ...F.c], n, {shape:F.im, speed:big?.42:.3, up:F.up||0, r:big?6:4.5, life:520, g:F.g??.0006}); }
@@ -3943,6 +3949,19 @@ class BattleSystem {
           ctx.strokeStyle = `rgba(255,236,170,${.22*k})`; ctx.lineWidth = 2 + (i%3); ctx.beginPath(); ctx.moveTo(x0+Math.cos(an)*r0, cy+Math.sin(an)*r0*.7); ctx.lineTo(x0+Math.cos(an)*r1, cy+Math.sin(an)*r1*.7); ctx.stroke(); }
         ctx.restore(); }
       // faixas pretas de cinema em cima e embaixo, com fio dourado
+      // nome do Supremo no centro da tela: entra grande, assenta e brilha antes do golpe
+      { const t = a.el, sk = SKILLS[a.ev.skill], col = TYPES[sk.type]||'#ffd24a', T0 = 120, T1 = ULT_PRE+380;
+        if(t>T0 && t<T1){ const q = (t-T0)/(T1-T0), inn = Math.min(1,(t-T0)/200), out = q>.82 ? (q-.82)/.18 : 0, z = 1 + .9*Math.pow(1-inn,3) + .25*out, cx = W/2, cy = H*.4;
+          ctx.save(); ctx.globalAlpha = Math.min(1,inn*1.4)*(1-out); ctx.translate(cx,cy); ctx.scale(z,z);
+          const fg = ctx.createLinearGradient(-300,0,300,0); fg.addColorStop(0,col+'00'); fg.addColorStop(.5,col+'cc'); fg.addColorStop(1,col+'00'); ctx.fillStyle = fg; ctx.fillRect(-320,-48,640,96);
+          ctx.fillStyle = '#000a'; ctx.fillRect(-320,-40,640,80); ctx.fillStyle = '#ffd24a'; ctx.fillRect(-320,-42,640,3); ctx.fillRect(-320,39,640,3);
+          ctx.font = '400 58px "Lilita One","Baloo 2",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+          ctx.lineWidth = 12; ctx.strokeStyle = '#2a1000'; ctx.strokeText(sk.name, 0, 2);
+          const tg = ctx.createLinearGradient(0,-30,0,30); tg.addColorStop(0,'#fffbe8'); tg.addColorStop(.5,'#ffe27a'); tg.addColorStop(1,'#ff9a1a'); ctx.fillStyle = tg; ctx.shadowColor = col; ctx.shadowBlur = 24; ctx.fillText(sk.name, 0, 2);
+          ctx.shadowBlur = 0; ctx.font = '400 20px "Lilita One","Baloo 2",sans-serif'; ctx.fillStyle = '#fff6c0'; ctx.fillText('SUPREMO', 0, -56);
+          // reflexo passando pelo nome
+          const sw = ((t-T0)/500 % 1)*900-450; const sg = ctx.createLinearGradient(sw-60,0,sw+60,0); sg.addColorStop(0,'#fff0'); sg.addColorStop(.5,'#ffffffaa'); sg.addColorStop(1,'#fff0'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = sg; ctx.fillRect(-320,-40,640,80);
+          ctx.restore(); ctx.textBaseline = 'alphabetic'; } }
       if(bh>0){ ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,bh); ctx.fillRect(0,H-bh,W,bh);
         const g = ctx.createLinearGradient(0,0,W,0); g.addColorStop(0,'#ffd24a00'); g.addColorStop(.5,'#ffd24a'); g.addColorStop(1,'#ffd24a00'); ctx.fillStyle = g; ctx.fillRect(0,bh-2,W,2); ctx.fillRect(0,H-bh,W,2); } }
     ctx.restore();
@@ -3983,7 +4002,8 @@ function openProv(){ $('prov').hidden = false; const now = Date.now(), a = arena
     {k:'expl', t:'Exploração', d:'2 salas com ranks C a SSS: Cartas de Evolução e Cartas de XP de Fusão.', img:'bg/pantano.jpg', open:true}];
   $('provCards').innerHTML = C.map(c=>`<button class="pcard${c.open?'':' soon'}" data-k="${c.k}" style="background-image:linear-gradient(#0000 35%,#06101cf0 78%),url(${c.img})"><b>${c.t}</b><span>${c.d}</span>${c.open?'<em>Entrar</em>':'<em class="lk">🔒 Em breve</em>'}</button>`).join('');
   $('provCards').querySelectorAll('.pcard').forEach(b=>b.onclick = ()=>{ if(b.dataset.k==='arena'){ $('prov').hidden = true; openArena(); } else if(b.dataset.k==='bglobal'){ if(save.trainer.lv < MEGA_TRAINER_LV) return toast(`Os Megas da Provação (BOSS Global) abrem no treinador Nv ${MEGA_TRAINER_LV}.`); if(!cleared(save,'caverna-5')) return toast('O BOSS Global abre ao vencer a Caverna Ecoante 5.'); openBGlobal(); } else if(b.dataset.k==='torre'){ if(!cleared(save,'caverna-5')) return toast('A Torre abre ao vencer a Caverna Ecoante 5.'); openTower(); } else if(b.dataset.k==='desafio'){ if(!cleared(save,'bosque-5')) return toast('O Desafio Semanal abre ao vencer o Bosque Sussurrante 5.'); openWeekly(); } else if(b.dataset.k==='expl'){ if(!cleared(save,'praia-5')) return toast('A Exploração abre ao vencer a Praia das Conchas 5.'); $('prov').hidden = true; openExpl(); } else toast('Em breve! Essa Provação chega numa próxima versão.'); }); }
-$('optBack').onclick = ()=>{ $('opt').hidden = true; }; $('optRepGo').onclick = sendReport; $('optSnd').onclick = ()=>{ SOUND.on = !SOUND.on; try{ localStorage.setItem('idle2d.snd', SOUND.on?'1':'0'); }catch(e){} if(SOUND.on){ sndCtx(); sfx('pop'); } renderOpt(); };
+$('optBack').onclick = ()=>{ $('opt').hidden = true; };
+$('optAnim').onclick = ()=>{ reduce = !reduce; try{ localStorage.setItem('idle2d.reduce', reduce?'1':'0'); }catch(e){} document.documentElement.classList.toggle('reduceMotion', reduce); renderOpt(); toast(reduce ? 'Animações reduzidas: menos efeitos na luta.' : 'Animações completas ligadas.'); }; $('optRepGo').onclick = sendReport; $('optSnd').onclick = ()=>{ SOUND.on = !SOUND.on; try{ localStorage.setItem('idle2d.snd', SOUND.on?'1':'0'); }catch(e){} if(SOUND.on){ sndCtx(); sfx('pop'); } renderOpt(); };
 $('rankBack').onclick = ()=>{ $('rank').hidden = true; if(!$('city').hidden) renderCityHud(); };
 $('provBack').onclick = ()=>{ $('prov').hidden = true; if(!$('city').hidden) renderCityHud(); };
 $('achBack').onclick = ()=>{ $('ach').hidden = true; if(!$('city').hidden) renderCityHud(); };
@@ -5676,6 +5696,7 @@ async function sendReport(){ const msg = $('optRep').value.trim(); if(msg.length
   catch(e){ toast('Não deu para enviar: '+e.message); } }
 function openOpt(){ $('opt').hidden = false; renderOpt(); }
 function renderOpt(){
+  $('optAnim').textContent = reduce ? 'Animações: reduzidas' : 'Animações: completas';
   const on = !!CLOUD.token, last = CLOUD.last ? new Date(CLOUD.last).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : 'ainda não';
   $('optCloud').innerHTML = on ? `<p>Conectado como <b>${CLOUD.nick}</b>. Último envio: ${last}.</p><div class="row"><button class="big" id="optPush">Salvar agora</button><button id="optOut">Sair da conta</button></div><p class="dim">O jogo salva sozinho na nuvem enquanto você joga. Entre com o mesmo nick em outro aparelho para continuar de lá.</p>`
     : `<p>Crie uma conta para não perder o progresso e jogar em qualquer aparelho.</p><div class="row"><input id="optNick" maxlength="16" placeholder="Nick" autocomplete="username"><input id="optPass" type="password" maxlength="64" placeholder="Senha" autocomplete="current-password"></div><div class="row"><button class="big" id="optNew">Criar conta</button><button id="optIn">Entrar</button></div><p id="optMsg" class="dim"></p>`;
