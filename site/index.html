@@ -1348,6 +1348,15 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #city .cbtn .fnew{top:-12px!important;font-size:10px!important;line-height:12px!important}
 .tlist{padding-bottom:10px}
 #load.boot{cursor:default;z-index:60}
+/* seta de vantagem nas habilidades */
+.sk .adv{position:absolute;left:50%;top:-20px;transform:translateX(-50%);pointer-events:none;z-index:3;animation:advB 1s ease-in-out infinite alternate}
+.sk .adv i{display:block;width:22px;height:20px;clip-path:polygon(30% 0,70% 0,70% 45%,100% 45%,50% 100%,0 45%,30% 45%);filter:drop-shadow(0 0 4px currentColor)}
+.sk .adv.up i{background:#3cff6a;color:#3cff6a}
+.sk .adv.dn i{background:#ff3a3a;color:#ff3a3a}
+.sk .adv.eq i{background:#fff;color:#fff}
+.compact .sk .adv{top:-16px}
+@keyframes advB{from{margin-top:0}to{margin-top:-4px}}
+#hint{bottom:132px!important}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -3550,6 +3559,12 @@ function longPress(b, html){ // segurar o dedo mostra a descrição (no PC, pass
   b.addEventListener('mouseenter', e=>{ if(e.pointerType!=='touch') skTip(html); });
   b.addEventListener('contextmenu', e=>e.preventDefault());
 }
+// seta em cima de cada habilidade: verde = super efetiva no alvo escolhido, vermelha = pouco efetiva, branca = normal
+function markSkillAdv(){ const u = waiting; if(!u || !B) return; const t = B.foes.find(f=>f.id===selTarget && f.hp>0); const T = t && SPECIES[t.sp].types;
+  for(const s of u.skills){ const b = $('sk-'+s); if(!b) continue; b.querySelector('.adv')?.remove(); const sk = SKILLS[s];
+    if(!T || !sk.power || sk.kind==='heal' || sk.kind==='buff' || sk.kind==='debuff') continue;
+    const m = eff(sk.type, T), k = m>1 ? 'up' : m<1 ? 'dn' : 'eq';
+    b.insertAdjacentHTML('beforeend', `<span class="adv ${k}" title="${m>1?'Super efetiva':m<1?'Pouco efetiva':'Efeito normal'} contra ${t.name||SPECIES[t.sp].name} (×${+m.toFixed(2)})"><i></i></span>`); } }
 function showSkills(u){
   const box = $('skills'); box.textContent=''; $('hint').hidden = true; skTip(null); box.classList.toggle('compact', !!u && u.skills.length>3);
   if(!u) return;
@@ -3573,6 +3588,7 @@ function showSkills(u){
     };
     box.append(b);
   });
+  markSkillAdv();
   if(u.skills.length<3 && u.side==='A'){ // 3º espaço trancado, como no vídeo
     const own = save.owned[u.sp], nx = own && skillPlan(u.sp, u.form||0).find(x=>!u.skills.includes(x.id));
     const b = document.createElement('button'); b.className='sk lock off'; b.setAttribute('aria-disabled','true');
@@ -3586,7 +3602,7 @@ cv.addEventListener('pointerdown', e=>{
   const r = cv.getBoundingClientRect(), x=(e.clientX-r.left)*W/r.width, y=(e.clientY-r.top)*H/r.height;
   const hit = live(all(B)).find(u=>{ const [px,py]=posOf(u), s=scaleOf(u); return Math.hypot(x-px, y-(py-28*s)) < Math.max(42,46*s); });
   if(!hit) return;
-  if(hit.side==='E') selTarget = hit.id;
+  if(hit.side==='E'){ selTarget = hit.id; markSkillAdv(); }
   else if(pending && waiting) doAct(waiting, pending, hit.id);
 });
 
