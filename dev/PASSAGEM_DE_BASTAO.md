@@ -336,3 +336,23 @@ A Beatriz pediu: **toda atualização nova vai para o link dos amigos**. Depois 
 - Mega: monstro precisa de Nv 60 (MEGA_REQ.lv); BOSS Global (Megas da Provação) só com treinador Nv 60 (MEGA_TRAINER_LV).
 - Trilha da região (openTrail), Evento laranja, Bolsa com detalhe/Usar, jogadores reais na cidade, todos os ícones SK2 prontos.
 - Adiado pela dona: costas das Megas e cidade 3D.
+
+## Regra de publicação (08/10/2026, 22h26)
+- A dona pediu: NÃO atualizar mais o link (tools/publicar.sh) até ela avisar. Cada atualização vai só para o artifact do jogo (JFdLWTPJkUdoHzVQKxkKkL: page = combate.html como index.html; enviar só arquivos novos/alterados) + resumo do que foi feito.
+- Pendências para quando voltar a publicar no link: nada além do que já está no artifact (link está igual à v8.4 + VIT + setas + BOSS Global).
+
+## Resumo das mudanças desde a v8.4
+- Tela de carregamento inicial 0–100% com Mega de capa (bootLoad); Worker guarda artes art/i por 30 dias.
+- Aventura voltou ao painel de instâncias (trilha de ilhas desligada; código openTrail ficou sem uso).
+- Derrota/desistência devolve a VIT (save.vitPaid; teste "VIT na derrota OK").
+- Setas verde/vermelha/branca em cima das habilidades conforme o alvo (markSkillAdv).
+- BOSS Global: janela cabe na tela, botões fixos embaixo e X no canto; todas as janelas #rpop com rolagem interna.
+- Título do HUD não sobrepõe os ícones.
+
+## Correções 08/10 (22h43) — só no artifact
+- Andar: pose por direção (lado/costas/frente) + balanço; montado: sprites novos char/ride{M,F,G,S}.png (pose sentada, Gemini) presos à sela e subindo junto com a montaria (drawRider).
+- Retratos de monstros enquadrados pelo contorno (portrait usa artBox).
+- Conquistas e Loja: sem barra, rola arrastando (dragScroll); Loja da Guilda rola e mostra tudo (grid-auto-rows).
+- Ranking: monstro desenhado na frente do treinador.
+- Fragmentos por grau: itens fragB/fragA/fragS (rankFrag), FRAG_NEED C10 B20 A40 S80; v13 converte fragU→fragA. Fontes: Torre (B a cada 5; A/S a cada 10), Evento caps→B, Login→A, Elite/Exploração/Pesadelo→A, Desafio Semanal→S.
+- Iniciais: Lumbrael (dex20132), Fanmamaão (dex20521), Psiananar (dex20851).

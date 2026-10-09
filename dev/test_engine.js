@@ -3,7 +3,7 @@ const fs=require('fs'), assert=require('assert');
 const html=fs.readFileSync(__dirname+'/combate.html','utf8');
 const src=html.match(/<script id="engine">([\s\S]*?)<\/script>/)[1];
 const dexJson=html.match(/<script id="dexdata" type="application\/json">([\s\S]*?)<\/script>/)[1];
-const E=new Function('document',src+';return {isCrit,critChance,freeRare,STARTERS,POOL,featuredS,summonS,markDex,skillPlan,skillsAt,DEX_BASES,DEXBY,transformReq,eff,obtainOf,REGION_TYPES,WILD_MULT,SKILLS,SPECIES,STAGES,STAGE_ORDER,ELITE_ORDER,REGIONS,tryEnter,chancesLeft,VIT_COST_ELITE,ELITE_DAILY,newBattle,act,choose,current,preview,stars,applyRewards,newSave,unlocked,vitNow,claimRegionChest,regionStars,VIT_MAX,VIT_COST,VIT_REGEN_MS,fillPool,levelUp,feed,breakCap,upgradeSkill,canTransform,transform,mkUnit,progOf,power,FORMS,TRANSFORM_REQ,intNeed,sweep,startFarm,collectFarm,simulate,progMap,STAR_MULT,FARM_CAP_MS,FARM_CYCLE_MIN_MS,npcOf,npcPower,arenaState,arenaTargets,arenaEnter,arenaResolve,claimArenaDaily,myRank,ARENA_DAILY,arenaSwap,arenaCooldown,adore,streakBonus,arenaOffers,rerollArenaShop,ARENA_CD_MS,shopOffers,buyShop,rerollShop,buyArena,LEGEND_FRAGS,buyEliteEntry,spinCapsule,freeLeft,buyDia,buyVit,CAPSULE,DIA_4STAR,newGear,equipGear,unequipGear,amplify,gearStats,fuse,addCreature,fusNeed,DEPOSIT_MAX,mountBonus,feedMount,giveMount,accBonus,dropAcc,equipAcc,unequipAcc,ACC_SETS,MOUNTS,DUNGEON,migrate,libBreak,libNeed,evoCardOf,EXPL_ORDER,fusCapOf,weeklySetup,weeklyClaim,weeklyTeamWhy,weekendRegion,vitCost,ARENA_REF:0,npcOf,EXPL_MILE,ELITE_MILE,WEEK_TYPES,npcPower,arenaState,ampCost,MOUNT_GROWTH,FUS_COST,NM_ORDER,towerSetup,towerRule,towerTeamWhy,towerFloor,TOWER_DAILY,guildDonate,guildState,buyGuild,guildBossSetup,MEGA_OF,megaStones,giveStone,bgSetup,bgOpen,bgBossOf,bgState,bgClaim,bgRanking,dayIdx,MEGA_BOSSES,megaIdx,normalForms,buyMountSkin,extraBonus,buyTrainerSkin,wearTrainerSkin,MOUNT_LV_MAX,MOUNT_CHAIN,TITLES};')({getElementById:()=>({textContent:dexJson})});
+const E=new Function('document',src+';return {buyGoldEx,vitMax,isCrit,critChance,freeRare,STARTERS,POOL,featuredS,summonS,markDex,skillPlan,skillsAt,DEX_BASES,DEXBY,transformReq,eff,obtainOf,REGION_TYPES,WILD_MULT,SKILLS,SPECIES,STAGES,STAGE_ORDER,ELITE_ORDER,REGIONS,tryEnter,chancesLeft,VIT_COST_ELITE,ELITE_DAILY,newBattle,act,choose,current,preview,stars,applyRewards,newSave,unlocked,vitNow,claimRegionChest,regionStars,VIT_MAX,VIT_COST,VIT_REGEN_MS,fillPool,levelUp,feed,breakCap,upgradeSkill,canTransform,transform,mkUnit,progOf,power,FORMS,TRANSFORM_REQ,intNeed,sweep,startFarm,collectFarm,simulate,progMap,STAR_MULT,FARM_CAP_MS,FARM_CYCLE_MIN_MS,npcOf,npcPower,arenaState,arenaTargets,arenaEnter,arenaResolve,claimArenaDaily,myRank,ARENA_DAILY,arenaSwap,arenaCooldown,adore,streakBonus,arenaOffers,rerollArenaShop,ARENA_CD_MS,shopOffers,buyShop,rerollShop,buyArena,LEGEND_FRAGS,buyEliteEntry,spinCapsule,freeLeft,buyDia,buyVit,CAPSULE,DIA_4STAR,newGear,equipGear,unequipGear,amplify,gearStats,fuse,addCreature,fusNeed,DEPOSIT_MAX,mountBonus,feedMount,giveMount,accBonus,dropAcc,equipAcc,unequipAcc,ACC_SETS,MOUNTS,DUNGEON,migrate,libBreak,libNeed,evoCardOf,EXPL_ORDER,fusCapOf,weeklySetup,weeklyClaim,weeklyTeamWhy,weekendRegion,vitCost,ARENA_REF:0,npcOf,EXPL_MILE,ELITE_MILE,WEEK_TYPES,npcPower,arenaState,ampCost,MOUNT_GROWTH,FUS_COST,NM_ORDER,towerSetup,towerRule,towerTeamWhy,towerFloor,TOWER_DAILY,guildDonate,guildState,buyGuild,guildBossSetup,MEGA_OF,megaStones,giveStone,bgSetup,bgOpen,bgBossOf,bgState,bgClaim,bgRanking,dayIdx,MEGA_BOSSES,megaIdx,normalForms,buyMountSkin,extraBonus,buyTrainerSkin,wearTrainerSkin,MOUNT_LV_MAX,MOUNT_CHAIN,TITLES};')({getElementById:()=>({textContent:dexJson})});
 // testes de mecânica usam inimigos fracos (dm 0.3); a campanha simulada no fim usa o balanceamento real
 const DM0={}; for(const id in E.STAGES){ DM0[id]=E.STAGES[id].dm; E.STAGES[id].dm=0.3; }
 const run=(team,id,lv={})=>{const b=E.newBattle(team,id,lv); while(!b.over){const u=E.current(b);E.act(b,...E.choose(b,u).slice(0,2));} return b;};
@@ -60,7 +60,7 @@ assert.strictEqual(E.canTransform(sv,'brasilho'),'nivel'); assert.strictEqual(E.
 assert.deepStrictEqual([0,1,2,3,4,5,6,7].map(E.intNeed),[5,5,5,10,20,30,40,50]);
 
 // BOT: só em instância vencida, gasta VIT e chance da Elite, paga conforme a melhor nota
-sv=E.newSave(); now=new Date(2026,9,6,12).getTime();
+sv=E.newSave(); now=new Date(2026,9,6,12).getTime(); sv.vit.cur=120;
 assert.strictEqual(E.sweep(sv,'praia-1',1,now).why,'naoVencida');
 sv.stages['praia-1']={best:2,clears:1,chests:[]}; let g0=sv.gold, sw=E.sweep(sv,'praia-1',10,now);
 assert.strictEqual(sw.runs,10); assert.strictEqual(E.vitNow(sv,now),100-60); assert.strictEqual(sv.gold-g0,Math.floor(E.STAGES['praia-1'].rewards.gold*0.7*10));
@@ -109,8 +109,8 @@ assert.strictEqual(E.buyArena(sv,0,now),null); assert.strictEqual(E.buyArena(sv,
 assert.strictEqual(E.rerollArenaShop(sv,now),null); assert.strictEqual(sv.items.medalha,880); assert(!E.arenaOffers(sv,now)[0].sold,'atualizar libera de novo');
 assert.deepStrictEqual(E.arenaOffers(sv,now+864e5).map(o=>o.sold),Array(12).fill(false),'renova no dia seguinte');
 const fS=E.featuredS(now); assert.strictEqual(new Set(fS).size,3); assert(fS.every(x=>E.SPECIES[x].grade==='S'));
-sv.frags={}; assert.strictEqual(E.summonS(sv,fS[0],now),'fragmentos'); sv.frags[fS[0]]=40; sv.items.fragU=15;
-assert.strictEqual(E.summonS(sv,fS[0],now),null,'específicos + universais'); assert(sv.owned[fS[0]] && !sv.frags[fS[0]] && sv.items.fragU===5); assert.strictEqual(E.summonS(sv,fS[0],now),'tem');
+sv.frags={}; assert.strictEqual(E.summonS(sv,fS[0],now),'fragmentos'); sv.frags[fS[0]]=70; sv.items.fragS=15;
+assert.strictEqual(E.summonS(sv,fS[0],now),null,'específicos + universais'); assert(sv.owned[fS[0]] && !sv.frags[fS[0]] && sv.items.fragS===5); assert.strictEqual(E.summonS(sv,fS[0],now),'tem');
 
 // Diamantes: 4★ pela 1ª vez paga uma vez; Arena diária paga; cápsulas; loja; VIT 3x; entrada extra Elite
 sv=E.newSave(); now=new Date(2026,9,6,12).getTime();
@@ -120,7 +120,7 @@ E.arenaState(sv,now); const dd=E.claimArenaDaily(sv,now); assert.strictEqual(sv.
 assert(!E.spinCapsule(sv,'comum',1,now,()=>0).why); sv.gold=0; assert.strictEqual(E.spinCapsule(sv,'comum',1,now).why,'ouro','sem grátis e sem ouro'); sv.gold=10500; assert(!E.spinCapsule(sv,'comum',10,now,()=>0).why); assert.strictEqual(sv.gold,500,'×10 custa 10 mil de ouro'); assert.strictEqual(E.freeLeft(sv,now+59*60e3),0); assert.strictEqual(E.freeLeft(sv,now+3600e3),1);
 sv.diamonds=1000; const px0=sv.items.pocaoXP; const sp=E.spinCapsule(sv,'raro',10,now,()=>0.8); assert.strictEqual(sp.got.length,10); assert.strictEqual(sv.diamonds,100); assert.strictEqual(sv.items.pocaoXP-px0,200);
 assert.strictEqual(E.spinCapsule(sv,'raro',10,now).why,'diamantes');
-sv.diamonds=1000; for(let i=0;i<3;i++) assert.strictEqual(E.buyVit(sv,now),null); assert.strictEqual(E.buyVit(sv,now),'limite'); assert.strictEqual(sv.diamonds,1000-50-100-150); assert.strictEqual(E.vitNow(sv,now),E.VIT_MAX+90);
+sv.diamonds=1000; const vb0=E.vitNow(sv,now); for(let i=0;i<3;i++) assert.strictEqual(E.buyVit(sv,now),null); assert.strictEqual(E.buyVit(sv,now),'limite'); assert.strictEqual(sv.diamonds,1000-120); assert.strictEqual(E.vitNow(sv,now),vb0+360);
 sv.stages['praia-1']={best:1,clears:1,chests:[]}; sv.vit={cur:200,at:now}; for(let i=0;i<3;i++) E.tryEnter(sv,'praia-e1',now); assert.strictEqual(E.tryEnter(sv,'praia-e1',now),'chances');
 assert.strictEqual(E.buyEliteEntry(sv,'praia-e1',now),null); assert.strictEqual(E.chancesLeft(sv,'praia-e1',now),1); assert.strictEqual(E.tryEnter(sv,'praia-e1',now),null);
 E.buyEliteEntry(sv,'praia-e1',now); E.buyEliteEntry(sv,'praia-e1',now); assert.strictEqual(E.buyEliteEntry(sv,'praia-e1',now),'limite');
@@ -174,10 +174,10 @@ assert.strictEqual(E.DEX_BASES.length,113); assert.strictEqual(E.POOL.masmorra.l
 assert(E.POOL.arena.every(x=>E.SPECIES[x].grade==='S') && E.POOL.sorteio.every(x=>E.SPECIES[x].grade!=='S'));
 assert.strictEqual(E.eff('Água',['Fogo','Pedra']),4); assert.strictEqual(E.eff('Normal','Fantasma'),0,'imunidade real, como no vídeo');
 for(const r of E.REGIONS) for(const st of r.stages) for(const w of st.waves) for(const f of w){ const sp=f.replace('!','').split('@')[0], S=E.SPECIES[sp]; assert(!E.WILD_MULT || S.boss || (S.dex && E.REGION_TYPES[r.id].includes(S.type)), 'selvagem fora do tema: '+f); }
-const pel=E.STARTERS[2]; let pu=E.mkUnit(pel,'A',0,{lv:1,cap:10}); assert.deepStrictEqual(pu.types,['Normal','Fada']); assert.strictEqual(pu.skills.length,3,'básico + golpes de afinidade 0 e 5');
-assert(E.skillPlan(pel).some(x=>x.cap===20),'afinidade 10 libera no limite 20');
+const pel0='dex20651'; let pu=E.mkUnit(pel0,'A',0,{lv:1,cap:10}); assert.deepStrictEqual(pu.types,['Normal','Fada']); assert.strictEqual(pu.skills.length,3,'básico + golpes de afinidade 0 e 5'); const pel=E.STARTERS[1];
+assert(E.skillPlan(pel0).some(x=>x.cap===20),'afinidade 10 libera no limite 20');
 sv=E.newSave(pel); assert.strictEqual(Object.keys(sv.owned).length,3,'começa com as 3 iniciais'); assert.strictEqual(sv.team[0],pel,'a escolhida lidera'); assert.strictEqual(sv.team.length,3); assert.strictEqual(sv.dex[E.SPECIES[pel].dex],2);
-const R2=E.transformReq(pel,2); assert(R2.int>0,'2ª evolução pede intimidade'); sv.owned[pel].lv=50; sv.items[E.evoCardOf(pel)]=99; sv.gold=1e5;
+const R2=E.transformReq(pel,2); assert(R2.int>0,'2ª evolução pede intimidade'); sv.owned[pel].lv=50; sv.items[E.evoCardOf(pel)]=99; sv.gold=1e5; sv.owned[pel].int=(E.transformReq(pel,1).int||0);
 assert.strictEqual(E.canTransform(sv,pel),null); assert(E.transform(sv,pel)); assert.strictEqual(E.canTransform(sv,pel),'intimidade');
 assert.strictEqual(sv.dex[E.FORMS[pel][0].dex],2,'forma evoluída marcada na Pokédex'); assert.strictEqual(E.mkUnit(pel,'A',0,E.progOf(sv.owned[pel])).name,E.FORMS[pel][0].name);
 const wild=E.mkUnit(E.POOL.masmorra[5],'E',0,1), mine=E.mkUnit(E.POOL.masmorra[5],'A',0,1); assert(wild.st.hp<mine.st.hp,'selvagem é mais fraco');
@@ -215,7 +215,7 @@ assert(!E.unlocked(sv,'dungeon-2')); assert(!E.STAGE_ORDER.includes('dungeon-1')
 const dg={over:'vitoria',stage:'dungeon-1',actions:999,allies:[0,1,2].map(i=>({hp:1,sp:['brasilho','folhito','gotim'][i]}))}; const rdg=E.applyRewards(sv,dg,()=>0.5);
 assert(rdg.acc && sv.acc.length===1); assert(E.unlocked(sv,'dungeon-2')); assert.strictEqual(Object.keys(rdg.items).filter(k=>/^lib\w+1$/.test(k)).length,1,'andar 1 dropa item de liberação faixa I'); assert.strictEqual(E.startFarm(sv,'dungeon-1',now).why,'elite');
 // save v7 → v8: ganha bolsa de acessórios e a montaria se já venceu a Praia 5
-const old={v:7,owned:{brasilho:{lv:3}},items:{},stages:{'praia-5':{best:2,clears:1}}}; E.migrate(old); assert.strictEqual(old.v,12); assert.deepStrictEqual(old.mount.have,['cabrito']); assert.deepStrictEqual(old.owned.dex20151.acc,[null,null,null]);
+const old={v:7,owned:{brasilho:{lv:3}},items:{},stages:{'praia-5':{best:2,clears:1}}}; E.migrate(old); assert.strictEqual(old.v,13); assert.deepStrictEqual(old.mount.have,['cabrito']); assert.deepStrictEqual(old.owned[E.STARTERS[0]].acc,[null,null,null]);
 
 // Eventos: Desafio Semanal (só o tipo da semana, até 10 Universais), fim de semana (VIT ½), marcos, dica de derrotas, Arena acompanha o treinador
 { const now=new Date(2026,9,6,12).getTime(), sat=new Date(2026,9,10,12).getTime(); const st=E.weeklySetup(now,20); let s2=E.newSave();
@@ -225,8 +225,8 @@ const old={v:7,owned:{brasilho:{lv:3}},items:{},stages:{'praia-5':{best:2,clears
   const wr=E.weekendRegion(sat); assert(wr && !E.weekendRegion(now)); const sid=wr+'-1'; assert.strictEqual(E.vitCost(sid,sat),Math.ceil(E.VIT_COST/2)); assert.strictEqual(E.vitCost(sid,now),E.VIT_COST);
   s2=E.newSave(); const lose={over:'derrota',stage:'praia-2',actions:5,allies:[{hp:0,sp:'brasilho'}]}; for(let i=0;i<3;i++) E.applyRewards(s2,{...lose}); assert.strictEqual(s2.losses['praia-2'],3);
   E.applyRewards(s2,{over:'vitoria',stage:'praia-2',actions:999,allies:[0,1,2].map(i=>({hp:1,sp:['brasilho','folhito','gotim'][i]}))},()=>0.99); assert(!s2.losses['praia-2'],'vitória zera a contagem');
-  for(let i=1;i<=4;i++) s2.stages['praia-e'+i]={best:1,clears:1,chests:[]}; s2.stages['praia-5']={best:1,clears:1,chests:[]}; const u0=s2.items.fragU||0;
-  E.applyRewards(s2,{over:'vitoria',stage:'praia-e5',actions:999,allies:[0,1,2].map(i=>({hp:1,sp:['brasilho','folhito','gotim'][i]}))},()=>0.99); assert.strictEqual((s2.items.fragU||0)-u0,E.ELITE_MILE,'marco: Elite da região completa');
+  for(let i=1;i<=4;i++) s2.stages['praia-e'+i]={best:1,clears:1,chests:[]}; s2.stages['praia-5']={best:1,clears:1,chests:[]}; const u0=s2.items.fragA||0;
+  E.applyRewards(s2,{over:'vitoria',stage:'praia-e5',actions:999,allies:[0,1,2].map(i=>({hp:1,sp:['brasilho','folhito','gotim'][i]}))},()=>0.99); assert.strictEqual((s2.items.fragA||0)-u0,E.ELITE_MILE,'marco: Elite da região completa');
   E.arenaState({trainer:{lv:10}},now); const p10=E.npcPower(E.npcOf(1)); E.arenaState({trainer:{lv:50}},now); assert(E.npcPower(E.npcOf(1))>p10*1.5,'rivais acompanham o treinador'); E.arenaState({trainer:{lv:20}},now);
   console.log('eventos OK'); }
 { const now=new Date(2026,9,6,12).getTime(); let s3=E.newSave(); s3.vit={cur:120,at:now};
@@ -238,7 +238,7 @@ const old={v:7,owned:{brasilho:{lv:3}},items:{},stages:{'praia-5':{best:2,clears
   s3.team=E.POOL.masmorra.filter(x=>!E.SPECIES[x].types.includes(st.rule.T)).slice(0,3); assert.strictEqual(E.tryEnter(s3,'torre',now),'regra');
   s3.team=E.POOL.masmorra.filter(x=>E.SPECIES[x].types.includes(st.rule.T)).slice(0,3); const v0=E.vitNow(s3,now); assert.strictEqual(E.tryEnter(s3,'torre',now),null); assert.strictEqual(E.vitNow(s3,now),v0,'Torre não gasta VIT');
   for(let n=1;n<=5;n++){ E.towerSetup(n); E.applyRewards(s3,{over:'vitoria',stage:'torre',actions:999,allies:[0,1,2].map(i=>({hp:1,sp:['brasilho','folhito','gotim'][i]}))},()=>0.99); }
-  assert.strictEqual(E.towerFloor(s3),5); assert.strictEqual(s3.items.fragU,1); assert.strictEqual(E.towerRule(10).k,'livre'); assert.strictEqual(E.towerTeamWhy(['a','b','c'],{k:'dois'}),'regra');
+  assert.strictEqual(E.towerFloor(s3),5); assert.strictEqual(s3.items.fragB,2); assert.strictEqual(E.towerRule(10).k,'livre'); assert.strictEqual(E.towerTeamWhy(['a','b','c'],{k:'dois'}),'regra');
   // Guilda: doação 1x por dia, moedas, loja por nível e limite semanal, chefe dá moedas pelo dano
   s3=E.newSave(); s3.gold=50000; assert.strictEqual(E.guildDonate(s3,'ouro',now),null); assert.strictEqual(E.guildDonate(s3,'presenca',now),'feito'); assert.strictEqual(s3.items.moedaG,60);
   s3.items.moedaG=1000; for(let i=0;i<3;i++) assert.strictEqual(E.buyGuild(s3,'g1',now),null); assert.strictEqual(E.buyGuild(s3,'g1',now),'limite'); assert.strictEqual(E.buyGuild(s3,'g16',now),'nivel');
@@ -256,7 +256,7 @@ const old={v:7,owned:{brasilho:{lv:3}},items:{},stages:{'praia-5':{best:2,clears
     const m='dex21141'; if(E.megaIdx(m).length>1){ const s6=E.newSave(); s6.trainer.lv=99; s6.owned[m]={...s4.owned[sp], form:E.normalForms(m)}; s6.gold=1e6; s6.items.pedraMU=2;
       const [a,b]=E.megaIdx(m); assert.strictEqual(E.canTransform(s6,m,b),null); assert(E.transform(s6,m,b) && s6.owned[m].form===b); assert.strictEqual(E.canTransform(s6,m),'max'); assert.strictEqual(E.canTransform(s6,m,a),'max'); } }
   { const o={v:10,owned:{dex20151:{lv:5}},items:{},stages:{},dex:{},diamonds:0,mount:{have:['cabrito','grifo'],cur:'cabrito',lv:12,exp:3,gear:{sela:1,manta:1}}}; E.migrate(o);
-    assert.strictEqual(o.v,12); assert.strictEqual(o.mount.cur,'grifo'); assert.deepStrictEqual(o.mount.have,['cabrito','lagarto','grifo']); assert.strictEqual(o.diamonds,400,'equipamentos de montaria viram diamantes'); assert(!o.mount.gear); }
+    assert.strictEqual(o.v,13); assert.strictEqual(o.mount.cur,'grifo'); assert.deepStrictEqual(o.mount.have,['cabrito','lagarto','grifo']); assert.strictEqual(o.diamonds,400,'equipamentos de montaria viram diamantes'); assert(!o.mount.gear); }
   { const t=E.newSave(); t.diamonds=900; const b0=E.extraBonus(t).atk||0; assert.strictEqual(E.buyTrainerSkin(t,'S'),null); assert.strictEqual(t.costume,'S'); assert(E.extraBonus(t).atk>b0,'fantasia soma atributos');
     assert.strictEqual(E.buyTrainerSkin(t,'G'),'diamantes'); assert.strictEqual(E.wearTrainerSkin(t,'G'),'nao'); assert.strictEqual(E.wearTrainerSkin(t,null),null); assert(E.extraBonus(t).atk>b0,'vale mesmo sem vestir'); }
   console.log('mega/boss global OK'); }
@@ -302,9 +302,9 @@ console.log('ouro', sv.gold, 'treinador nv', sv.trainer.lv, 'pokédex obtidas', 
 }
 console.log('OK');
 { const o={v:8,owned:{brasilho:{lv:7,int:3,form:1,sk:{brasa:2}},gotim:{lv:2},dex20151:{lv:1}},team:['brasilho','gotim','dex20151'],items:{},stages:{},dex:{}};
-  E.migrate(o); assert.strictEqual(o.v,12); assert(!o.owned.brasilho && !o.owned.gotim); assert.strictEqual(o.owned.dex20221.lv,7); assert.deepStrictEqual(o.owned.dex20221.sk,{});
-  assert.deepStrictEqual(o.team,['dex20221','dex20651','dex20151']); const o2={v:9,owned:{dex20151:{lv:5,fus:5,sk:{x:7}}},items:{fragS:7,cristalT:3,pergaminho:2},stages:{},dex:{}}; E.migrate(o2);
-  assert.deepStrictEqual(o2.items,{fragU:7,evoC:3,libInt1:2}); assert.strictEqual(o2.owned.dex20151.fusCap,6); assert.strictEqual(o2.owned.dex20151.skCap,8);
+  E.migrate(o); assert.strictEqual(o.v,13); assert(!o.owned.brasilho && !o.owned.gotim); assert.strictEqual(o.owned[E.STARTERS[0]].lv,7); assert.deepStrictEqual(o.owned[E.STARTERS[0]].sk,{});
+  assert.deepStrictEqual(o.team,[E.STARTERS[0],E.STARTERS[1],'dex20151']); const o2={v:9,owned:{dex20151:{lv:5,fus:5,sk:{x:7}}},items:{fragS:7,cristalT:3,pergaminho:2},stages:{},dex:{}}; E.migrate(o2);
+  assert.deepStrictEqual(o2.items,{fragA:7,evoC:3,libInt1:2}); assert.strictEqual(o2.owned.dex20151.fusCap,6); assert.strictEqual(o2.owned.dex20151.skCap,8);
   console.log('migração v9 OK'); }
 { const sv=E.newSave(E.STARTERS[0]); sv.diamonds=0; const now=Date.UTC(2026,0,5,12); assert.strictEqual(E.freeRare(sv,now),1);
   assert(!E.spinCapsule(sv,'raro',1,now,()=>0).why); assert.strictEqual(E.freeRare(sv,now),0); assert.strictEqual(E.spinCapsule(sv,'raro',1,now).why,'diamantes');
@@ -313,7 +313,7 @@ console.log('OK');
   const r=c/4000; assert(r>.04 && r<.13, 'taxa de crítico '+r); console.log('crítico OK', r.toFixed(3)); }
 { // v12: monstros cortados devolvem recursos
   const o = {v:11, gold:0, items:{}, owned:{dex20033:{lv:10, form:0, int:40, equip:{id:1}}, dex20151:{lv:3}}, frags:{dex20033:5}, team:['dex20033','dex20151'], dex:{20033:2}, gear:[], acc:[]};
-  E.migrate(o); assert.strictEqual(o.v,12); assert(!o.owned.dex20033 && o.owned.dex20151); assert.deepStrictEqual(o.team,['dex20151']);
+  E.migrate(o); assert.strictEqual(o.v,13); assert(!o.owned.dex20033 && o.owned.dex20151); assert.deepStrictEqual(o.team,['dex20151']);
   assert(o.gold === 300*10 + 300*5, 'ouro devolvido'); assert(o.items.pocaoXP===9 && o.items.fruta===2); assert.strictEqual(o.gear.length,1); assert(!o.dex[20033]); assert.strictEqual(o.cutRefund.n,1);
   console.log('corte de monstros OK'); }
 { // regra: perder ou desistir não gasta VIT
@@ -322,3 +322,6 @@ console.log('OK');
   const b = E.newBattle(s.team,'praia-1'); b.over = 'derrota'; E.applyRewards(s, b); assert.strictEqual(E.vitNow(s,now), v0, 'VIT devolvida na derrota');
   assert.strictEqual(E.tryEnter(s,'praia-1',now), null); const b2 = E.newBattle(s.team,'praia-1'); b2.over = 'vitoria'; E.applyRewards(s, b2); assert(E.vitNow(s,now) < v0, 'vitória gasta VIT');
   console.log('VIT na derrota OK'); }
+{ const s=E.newSave(E.STARTERS[0]); const now=Date.now(); s.diamonds=25; const g0=s.gold;
+  assert.strictEqual(E.buyGoldEx(s,now),null); assert.strictEqual(E.buyGoldEx(s,now),null); assert.strictEqual(E.buyGoldEx(s,now),'limite'); assert.strictEqual(s.gold-g0,20000); assert.strictEqual(s.diamonds,5);
+  assert.strictEqual(E.vitMax({trainer:{lv:1}}),80); assert.strictEqual(E.vitMax({trainer:{lv:11}}),100); console.log('troca de ouro e VIT por nível OK'); }

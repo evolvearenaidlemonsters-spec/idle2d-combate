@@ -1368,6 +1368,14 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 .bgpop .bginfo p{margin:2px 0}.bgpop .bgrk div{padding:1px 6px}
 .bgpop .go{position:sticky;bottom:-10px;background:linear-gradient(transparent,#0e1a30 40%);padding-top:8px}
 @media (max-height:600px){ .bgpop .bgboss img{max-height:170px} }
+.noBar{scrollbar-width:none;-ms-overflow-style:none;cursor:grab}.noBar::-webkit-scrollbar{display:none}
+#shopGrid{overflow-y:auto!important;grid-template-rows:none!important;grid-auto-rows:162px!important;align-content:start}
+#rpop .fart{display:flex;justify-content:center;align-items:flex-end;overflow:hidden}#rpop .fart img{max-height:100%;max-width:100%;object-fit:contain}
+#cRes .pbtn{cursor:pointer;pointer-events:auto}#cRes .pbtn:hover{filter:brightness(1.2)}
+/* faixa do título no Perfil menor (não cobre o personagem) */
+#profBadge .tbadge.lg{font-size:15px!important;padding:2px 14px!important;max-width:230px;overflow:hidden;text-overflow:ellipsis}
+#profBadge{top:88px!important}
+#rpop .pp .row{justify-content:center}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -1867,7 +1875,7 @@ const WILD = new Set(['siriz','estrelim','pombito','besourao','brotim','lagartim
 const obtainOf = sp => { const e = DEXBY[SPECIES[sp].dex]; return e.g==='S' ? 'arena' : e.ob.includes('Sorteio') && !e.ob.includes('Masmorra') ? 'sorteio' : 'masmorra'; };
 const poolOf = k => DEX_BASES.filter(sp=>obtainOf(sp)===k).sort((a,b)=>GRADES.indexOf(SPECIES[a].grade)-GRADES.indexOf(SPECIES[b].grade) || SPECIES[a].dex-SPECIES[b].dex);
 const POOL = {masmorra:poolOf('masmorra'), sorteio:poolOf('sorteio'), arena:poolOf('arena')};
-const STARTERS = ['dex20151','dex20221','dex20651']; // escolha inicial: três criaturas grau C
+const STARTERS = ['dex20132','dex20521','dex20851']; // escolha inicial: três criaturas grau C
 for(const r of REGIONS){ const pool = POOL.masmorra.filter(sp=>REGION_TYPES[r.id].includes(SPECIES[sp].type) && !STARTERS.includes(sp)); let j = 0;
   for(const st of r.stages) st.waves = st.waves.map(w=>w.map(e=>{ const f = parseFoe(e); return WILD.has(f.sp) ? `${pool[j++ % pool.length]}@${f.lv}${f.sub?'!':''}` : e; })); }
 // 1ª vitória na Praia 1 e 2 dá um dos monstros da instância (o jogador começa com um só); Praia 5 dá uma criatura de Sorteio
@@ -2002,10 +2010,10 @@ function towerSetup(n){
     rewards:{trainerExp:0, creatureExp:60+4*n, gold:300+40*n, items:{}, first:{}, starChests:[]}};
   return STAGES.torre; }
 // marcos da Torre: a cada 5 andares diamantes + Universal; a cada 10 também Carta de Evolução
-const towerPrize = n => n%10===0 ? {dia:60, fragU:3, card: n<=40 ? 'evoR' : n<=80 ? 'evoE' : 'evoL'} : n%5===0 ? {dia:30, fragU:1} : null;
+const towerPrize = n => n%10===0 ? {dia:60, frag:n<=50?'fragA':'fragS', fq:3, card: n<=40 ? 'evoR' : n<=80 ? 'evoE' : 'evoL'} : n%5===0 ? {dia:30, frag:'fragB', fq:2} : null;
 function towerWin(save, st, out){ save.tower = save.tower || {floor:0}; if(st.floor !== save.tower.floor+1) return; save.tower.floor = st.floor; out.tower = st.floor;
   const R = towerPrize(st.floor); if(!R) return; save.diamonds = (save.diamonds||0)+R.dia; out.diamonds = (out.diamonds||0)+R.dia;
-  save.items.fragU = (save.items.fragU||0)+R.fragU; out.items.fragU = (out.items.fragU||0)+R.fragU; if(R.card){ save.items[R.card] = (save.items[R.card]||0)+1; out.items[R.card] = (out.items[R.card]||0)+1; } }
+  save.items[R.frag] = (save.items[R.frag]||0)+R.fq; out.items[R.frag] = (out.items[R.frag]||0)+R.fq; if(R.card){ save.items[R.card] = (save.items[R.card]||0)+1; out.items[R.card] = (out.items[R.card]||0)+1; } }
 // ===== Guilda (simulada até termos servidor): membros NPC, doação diária, moedas, loja e chefe semanal =====
 const GUILD_NAME = 'Guardiões de Lumora', GUILD_EXP = lv => 2000*lv, GUILD_LV_MAX = 10, GBOSS_DAILY = 2;
 const GUILD_DONATE = [{k:'presenca', name:'Presença', cost:{}, coins:20, exp:30}, {k:'ouro', name:'Doar 20 mil de ouro', cost:{gold:20000}, coins:60, exp:200}, {k:'dia', name:'Doar 50 diamantes', cost:{dia:50}, coins:150, exp:500}];
@@ -2166,13 +2174,16 @@ const elapsed = b => b.actions*SEC_PER_ACTION;
 function stars(b){ if(b.over!=='vitoria') return 0; const n = live(b.allies).length; return n===b.allies.length && elapsed(b)<=STAGES[b.stage].recSec ? 4 : n; }
 
 // ===== Progresso do jogador =====
-const SAVE_VERSION = 12;
+const SAVE_VERSION = 13;
 const ITEMS = { // desc e from aparecem na Bolsa
   pocaoXP:{name:'Poção de XP',color:'#5fd4ff', desc:'Vai para o Pool de XP (+100) e sobe o nível dos monstros.', from:'Instâncias Comuns, Cápsulas, lojas'},
   fruta:{name:'Fruta da Amizade',color:'#ff7fa8', desc:'+20 de intimidade. Cada nível de intimidade dá +1% nos atributos.', from:'Instâncias Comuns, Cápsulas, lojas'},
   feno:{name:'Feno Dourado',color:'#e8c84a', desc:'Alimenta a montaria: +10 EXP de montaria.', from:'Instâncias Comuns, Dungeon, Loja de Equipamento da Montaria'},
   medalha:{name:'Medalha de Arena',color:'#ffb23a', desc:'Moeda da Loja da Arena.', from:'Recompensa diária e vitórias na Arena'},
-  fragU:{name:'Fragmento Universal',color:'#ffd25a', desc:'Vale como fragmento de qualquer criatura, inclusive lendárias.', from:'Só em eventos exclusivos (Evento do Dia, Login Diário)'},
+  fragU:{name:'Fragmento Universal (antigo)',color:'#ffd25a', desc:'Item antigo: virou Fragmento A.', from:'—'},
+  fragB:{name:'Fragmento B',color:'#5fcf6a', desc:'Completa os fragmentos de qualquer monstro de grau C ou B.', from:'Evento do Dia, Torre (a cada 5 andares)'},
+  fragA:{name:'Fragmento A',color:'#4aa8ff', desc:'Completa os fragmentos de qualquer monstro de grau A.', from:'Login Diário, Elite completa, Exploração, Pesadelo, Torre'},
+  fragS:{name:'Fragmento S',color:'#c08aff', desc:'Completa os fragmentos de qualquer monstro de grau S (inclusive lendários).', from:'Desafio Semanal, Torre (andares 60+ a cada 10)'},
   fragCelestor:{name:'Fragmento de Celéstor (antigo)',color:'#7fd8ff', desc:'Item antigo.', from:'—'},
   cartaFus:{name:'Carta de XP de Fusão',color:'#4fd8c8', desc:'+20 XP de fusão sem sacrificar monstros.', from:'Provação Exploração (Dimensão do Vazio), Cápsulas, Loja Comum, monstro repetido'},
   evoC:{name:'Carta de Evolução Comum',color:'#5fcf6a', desc:'Evolui monstros de grau C e B.', from:'Elite 5 (Praia, Bosque, Caverna), Exploração C/B, lojas'},
@@ -2224,6 +2235,8 @@ function migrate(sv){
     sv.team = (sv.team||[]).filter(sp=>sv.owned[sp]);
     if(R.n || R.gold){ sv.gold = (sv.gold||0) + R.gold; sv.items = sv.items||{}; for(const k of ['pocaoXP','evoR','fruta']) if(R[k]) sv.items[k] = (sv.items[k]||0) + R[k]; sv.cutRefund = {n:R.n, gold:R.gold, pocaoXP:R.pocaoXP, evoR:R.evoR, fruta:R.fruta}; }
     sv.v = 12; }
+  if(sv.v===12){ // v13: Fragmento Universal vira Fragmento A (fragmentos agora são por grau B/A/S)
+    sv.items = sv.items||{}; if(sv.items.fragU){ sv.items.fragA = (sv.items.fragA||0) + sv.items.fragU; delete sv.items.fragU; } sv.v = 13; }
   return sv;
 }
 function poolOfRegion(id){ const r = REGIONS.find(r=>r.id===id); return [...new Set(r.stages.flatMap(s=>s.waves.flat()).map(e=>e.replace('!','').split('@')[0]).filter(sp=>SPECIES[sp] && SPECIES[sp].dex))]; }
@@ -2432,8 +2445,9 @@ function markDex(save, sp, lvl, form=0){
   const ids = [s.dex, ...FORMS[sp].slice(0, s.playable ? form : 0).map(f=>f.dex)];
   for(const id of ids) save.dex[id] = Math.max(save.dex[id]||0, lvl);
 }
-const VIT_MAX = 120, VIT_COST = 8, VIT_COST_ELITE = 15, VIT_REGEN_MS = 5*60*1000; // 1 VIT a cada 5 minutos (≈290 por dia)
-function vitNow(save, now){ const v = save.vit; if(v.cur >= VIT_MAX){ v.at = now; return v.cur; } const n = Math.floor((now - v.at)/VIT_REGEN_MS); if(n>0){ v.cur = Math.min(VIT_MAX, v.cur+n); v.at += n*VIT_REGEN_MS; } return v.cur; }
+const VIT_MAX = 80; const vitMax = s => Math.min(200, VIT_MAX + 2*(((s&&s.trainer&&s.trainer.lv)||1)-1)); // VIT máxima: 80 no Nv 1, +2 por nível (até 200)
+const VIT_DUMMY = 0, VIT_COST = 8, VIT_COST_ELITE = 15, VIT_REGEN_MS = 5*60*1000; // 1 VIT a cada 5 minutos (≈290 por dia)
+function vitNow(save, now){ const v = save.vit, VM = vitMax(save); if(v.cur >= VM){ v.at = now; return v.cur; } const n = Math.floor((now - v.at)/VIT_REGEN_MS); if(n>0){ v.cur = Math.min(VM, v.cur+n); v.at += n*VIT_REGEN_MS; } return v.cur; }
 const cleared = (save,id) => !!(save.stages[id] && save.stages[id].clears);
 // Comum: em sequência. Elite N: Comum N vencida e Elite N−1 da mesma região vencida.
 function unlocked(save, id){
@@ -2450,7 +2464,7 @@ function unlocked(save, id){
 }
 const sid = (r,i,elite) => `${r.id}-${elite==='p'?'p':elite?'e':''}${i+1}`; // elite: false (Comum), true (Elite), 'p' (Pesadelo)
 const regionStars = (save, r, elite=false) => r.stages.reduce((a,_,i)=>a+((save.stages[sid(r,i,elite)]||{}).best||0),0);
-const REGION_CHEST = (ri, elite) => elite==='p' ? {gold:2000*(ri+1), items:{[NM_CARD(ri)]:2, fragU:3}} : elite ? {gold:800*(ri+1), items:{[ELITE_CARD(ri)]:2}} : {gold:400*(ri+1), items:{pocaoXP:5}};
+const REGION_CHEST = (ri, elite) => elite==='p' ? {gold:2000*(ri+1), items:{[NM_CARD(ri)]:2, fragA:3}} : elite ? {gold:800*(ri+1), items:{[ELITE_CARD(ri)]:2}} : {gold:400*(ri+1), items:{pocaoXP:5}};
 const dayKey = now => { const d = new Date(now); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; };
 function eliteDay(save, id, now){ const k = dayKey(now), e = save.elite[id]; if(!e || e.day!==k) save.elite[id] = {day:k, used:0, extra:0}; save.elite[id].extra = save.elite[id].extra||0; return save.elite[id]; }
 function chancesLeft(save, id, now){ const st = STAGES[id]; if(!st.elite && !st.dungeon && !st.weekly && !st.daily) return Infinity; const e = eliteDay(save, id, now); return (st.daily || (st.dungeon ? DUNGEON_DAILY : ELITE_DAILY)) + e.extra - e.used; }
@@ -2476,7 +2490,7 @@ function tryEnter(save, id, now){
   if(STAGES[id].weekly){ const why = weeklyTeamWhy(save.team); if(why) return why; }
   if(STAGES[id].tower){ const why = towerTeamWhy(save.team, STAGES[id].rule); if(why) return why; }
   if(STAGES[id].bglobal && !bgOpen(now)) return 'fechado';
-  if(save.vit.cur >= VIT_MAX) save.vit.at = now;
+  if(save.vit.cur >= vitMax(save)) save.vit.at = now;
   save.vit.cur -= vitCost(id,now); save.vitPaid = {id, cost:vitCost(id,now)}; // devolvido se perder ou desistir
   if(STAGES[id].elite || STAGES[id].dungeon || STAGES[id].weekly || STAGES[id].daily) useChance(save,id,now);
   return null;
@@ -2590,11 +2604,11 @@ function applyRewards(save, b, rnd=Math.random){
   if(st.dungeon){ out.acc = dropAcc(save, st.idx, rnd); for(const [k,q] of Object.entries(dropLib(save, st.idx, rnd))) out.items[k] = (out.items[k]||0)+q; }
   if(st.expl) for(const [k,q] of Object.entries(explDrop(save, st, rnd))) out.items[k] = (out.items[k]||0)+q;
   // marcos de progresso (uma vez): Fragmentos Universais
-  const uni = n => { if(n>0){ save.items.fragU = (save.items.fragU||0)+n; out.items.fragU = (out.items.fragU||0)+n; } };
+  const uni = n => { if(n>0){ save.items.fragA = (save.items.fragA||0)+n; out.items.fragA = (out.items.fragA||0)+n; } };
   save.miles = save.miles || {};
   if(st.expl && firstClear) uni(EXPL_MILE[st.idx]);
   if(st.elite && !save.miles['e:'+st.region] && [1,2,3,4,5].every(i=>cleared(save, `${st.region}-e${i}`))){ save.miles['e:'+st.region] = 1; uni(ELITE_MILE); out.mile = st.region; }
-  if(st.weekly) uni(weeklyClaim(save, out.stars, Date.now()));
+  if(st.weekly){ const n = weeklyClaim(save, out.stars, Date.now()); if(n){ save.items.fragS = (save.items.fragS||0)+n; out.items.fragS = (out.items.fragS||0)+n; } }
   if(st.tower) towerWin(save, st, out);
   return out;
 }
@@ -2734,18 +2748,19 @@ function rerollArenaShop(save, now){ const st = arenaShopState(save, now), c = A
 // Grau S (lendários): 3 em destaque por dia na loja da Arena, que vende os fragmentos deles
 function featuredS(now){ const k = dayKey(now); let h = 0; for(const ch of k) h = (h*31 + ch.charCodeAt(0)) % 9973; const P = POOL.arena; return [0,1,2].map(i=>P[(h + i*Math.ceil(P.length/3)) % P.length]); }
 // ===== Fragmentos por criatura: cada uma tem os seus; o Fragmento Universal (só de eventos) completa o que faltar =====
-const FRAG_NEED = {C:10, B:20, A:30, S:LEGEND_FRAGS};
-const fragNeed = sp => FRAG_NEED[SPECIES[sp].grade] || LEGEND_FRAGS;
+const FRAG_NEED = {C:10, B:20, A:40, S:80}; // por grau
+const rankFrag = sp => { const g = SPECIES[sp] && SPECIES[sp].grade; return g==='C'||g==='B' ? 'fragB' : g==='A' ? 'fragA' : 'fragS'; }; // fragmento de rank que completa esse monstro
+const fragNeed = sp => SPECIES[sp].legendary ? LEGEND_FRAGS : (FRAG_NEED[SPECIES[sp].grade] || 80);
 const fragsOf = (save, sp) => (save.frags && save.frags[sp]) || 0;
 function giveFrag(save, sp, n){ save.frags = save.frags || {}; save.frags[sp] = (save.frags[sp]||0) + n; }
 const FRAG_POOL = [...new Set([...POOL.masmorra, ...POOL.sorteio])].filter(sp=>SPECIES[sp].playable!==false && SPECIES[sp].grade!=='S');
 // Invocar: gasta os fragmentos da criatura e completa com Universais
 function summonFrag(save, sp){
   if(!SPECIES[sp] || SPECIES[sp].playable===false) return 'fora'; if(save.owned[sp]) return 'tem';
-  const need = fragNeed(sp), own = fragsOf(save, sp), uni = save.items.fragU||0; if(own + uni < need) return 'fragmentos';
+  const need = fragNeed(sp), own = fragsOf(save, sp), rk = rankFrag(sp), uni = save.items[rk]||0; if(own + uni < need) return 'fragmentos';
   const useOwn = Math.min(own, need), useUni = need - useOwn;
   save.frags[sp] = own - useOwn; if(!save.frags[sp]) delete save.frags[sp];
-  if(useUni){ save.items.fragU -= useUni; if(!save.items.fragU) delete save.items.fragU; }
+  if(useUni){ save.items[rk] -= useUni; if(!save.items[rk]) delete save.items[rk]; }
   return addCreature(save, sp)==='novo' ? null : 'deposito';
 }
 const summonS = (save, sp) => summonFrag(save, sp);
@@ -2783,7 +2798,7 @@ const DIA_SHOP = [ // Loja de Diamantes: fixa
   {id:'pocao',item:'pocaoXP',qty:20,price:30},{id:'fruta',item:'fruta',qty:20,price:30},{id:'ouro',item:'gold',qty:10000,price:80},
 ];
 function buyDia(save, id){ const o = DIA_SHOP.find(x=>x.id===id); if((save.diamonds||0) < o.price) return 'diamantes'; save.diamonds -= o.price; give(save, o.item, o.qty); return null; }
-const VIT_BUY_MAX = 3, VIT_BUY_QTY = 30, vitBuyCost = n => 50*(n+1); // 50, 100, 150 diamantes
+const VIT_BUY_MAX = 3, VIT_BUY_QTY = 120, vitBuyCost = n => 40; // 120 VIT por 40 diamantes (até 3 por dia)
 function vitBuyState(save, now){ const k = dayKey(now); if(!save.vitBuy || save.vitBuy.day!==k) save.vitBuy = {day:k, n:0}; return save.vitBuy; }
 function buyVit(save, now){
   const st = vitBuyState(save, now); if(st.n >= VIT_BUY_MAX) return 'limite';
@@ -2791,6 +2806,16 @@ function buyVit(save, now){
   vitNow(save, now); save.diamonds -= c; st.n++; save.vit.cur += VIT_BUY_QTY; return null; // pode passar do máximo
 }
 
+// troca de diamantes por ouro: 10 💎 = 10.000 ouro, até 2 vezes por dia
+const GOLD_EX_MAX = 2, GOLD_EX_DIA = 10, GOLD_EX_GOLD = 10000;
+function goldExState(save, now){ const k = dayKey(now); if(!save.goldEx || save.goldEx.day!==k) save.goldEx = {day:k, n:0}; return save.goldEx; }
+function buyGoldEx(save, now){ const st = goldExState(save, now); if(st.n >= GOLD_EX_MAX) return 'limite'; if((save.diamonds||0) < GOLD_EX_DIA) return 'diamantes'; save.diamonds -= GOLD_EX_DIA; save.gold += GOLD_EX_GOLD; st.n++; return null; }
+function openGoldEx(){ const st = goldExState(save, Date.now()), left = GOLD_EX_MAX - st.n;
+  popSeq([{rib:'Ouro', title:'Trocar diamantes por ouro', btn:'Fechar', html:`<p>${ico('dia')} <b>${GOLD_EX_DIA}</b> diamantes → ${ico('gold')} <b>${fmtN(GOLD_EX_GOLD)}</b> de ouro</p><p class="muted">Trocas hoje: ${st.n}/${GOLD_EX_MAX} · Você tem ${ico('dia')}${save.diamonds||0}</p><div class="row"><button class="big" id="gxGo" ${left<=0?'disabled':''}>${left<=0?'Limite de hoje':'Trocar'}</button></div>`,
+    after:P=>{ const b = P.querySelector('#gxGo'); if(b) b.onclick = ()=>{ const e = buyGoldEx(save, Date.now()); if(e) return toast(e==='limite' ? `Só ${GOLD_EX_MAX} trocas por dia.` : 'Diamantes insuficientes.'); persist(); toast(`+${fmtN(GOLD_EX_GOLD)} de ouro!`); renderCityHud(); openGoldEx(); }; }}]); }
+function openVitBuy(){ const st = vitBuyState(save, Date.now()), left = VIT_BUY_MAX - st.n;
+  popSeq([{rib:'VIT', title:'Comprar VIT', btn:'Fechar', html:`<p>${ico('dia')} <b>${vitBuyCost(st.n)}</b> diamantes → ${ico('vit')} <b>+${VIT_BUY_QTY}</b> de VIT</p><p class="muted">VIT agora: ${vitNow(save,Date.now())}/${vitMax(save)} (máximo sobe 2 por nível) · Compras hoje: ${st.n}/${VIT_BUY_MAX} · Você tem ${ico('dia')}${save.diamonds||0}</p><div class="row"><button class="big" id="vbGo" ${left<=0?'disabled':''}>${left<=0?'Limite de hoje':'Comprar'}</button></div>`,
+    after:P=>{ const b = P.querySelector('#vbGo'); if(b) b.onclick = ()=>{ const e = buyVit(save, Date.now()); if(e) return toast(e==='limite' ? `Só ${VIT_BUY_MAX} compras de VIT por dia.` : 'Diamantes insuficientes.'); persist(); toast(`+${VIT_BUY_QTY} VIT!`); renderCityHud(); openVitBuy(); }; }}]); }
 // ===== BOT (varredura) e farm offline =====
 const STAR_MULT = [0, .55, .70, .85, 1];            // recompensa básica conforme a melhor nota da instância
 const FARM_CAP_MS = 8*3600*1000;                     // farm junta no máximo 8 h por ausência
@@ -3068,13 +3093,13 @@ function drawCreature(g, sp, x, y, sc, face, opt={}){
 }
 
 // ===== Ícones (arte final) =====
-const ICON_FILE = {pedraMU:'i_pedraMU', moedaG:'i_moedaG', pocaoXP:'i_0', fruta:'i_1', feno:'i_2', pergaminho:'i_3', cristalT:'i_4', medalha:'i_5', fragS:'i_6', frag:'i_6', fragU:'i_fragU', fragCelestor:'i_6', cartaFus:'i_fusXp', gold:'i_8', dia:'i_9', vit:'i_10', chest:'i_11',
+const ICON_FILE = {pedraMU:'i_pedraMU', moedaG:'i_moedaG', pocaoXP:'i_0', fruta:'i_1', feno:'i_2', pergaminho:'i_3', cristalT:'i_4', medalha:'i_5', fragS:'i_6', frag:'i_6', fragU:'i_fragU', fragB:'i_fragB', fragA:'i_fragA', fragS:'i_fragS', fragCelestor:'i_6', cartaFus:'i_fusXp', gold:'i_8', dia:'i_9', vit:'i_10', chest:'i_11',
   evoC:'i_evoC', evoR:'i_evoR', evoE:'i_evoE', evoL:'i_evoL'};
 for(const k of Object.keys(LIB_KIND)) for(let t=1;t<=4;t++) ICON_FILE[libKey(k,t)] = 'i_'+libKey(k,t);
 const ico = (k, cls='') => ICON_FILE[k] ? `<img class="ico ${cls}" src="ui/${ICON_FILE[k]}.png" alt="">` : `<i class="dot" style="background:${(ITEMS[k]||{}).color||'#ffc23d'}"></i>`;
 // ===== Personagens (arte final): sprites recortados em char/. Sem a imagem, cai no desenho provisório =====
 const CHAR = {};
-for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`)]){
+for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`), 'rideM','rideF','rideG','rideS']){
   const im = new Image(); im.onload = ()=>{ bg = null; if(typeof cityBg!=='undefined') cityBg = null; if(!$('starter').hidden) pickStarter(); }; im.src = `char/${k}.png`; CHAR[k] = im; }
 const heroKey = view => `hero${(save && save.costume) || (save && save.hero) || 'M'}_${view}`; // 0 frente · 1 três-quartos · 2 lado (andando) · 3 costas · 4 costas arremessando · 5 costas comemorando
 const heroPose = view => { const k = heroKey(view), im = CHAR[k]; return im && im.complete && im.naturalWidth ? k : heroKey(3); };
@@ -3085,7 +3110,9 @@ function drawSprite(g, key, x, y, h=124, flip=false, o={}){
   g.save(); g.translate(x, y+bob); if(flip) g.scale(-1,1); if(o.clipY!=null){ g.beginPath(); g.rect(-w,-h-10,w*2,h+10-o.clipY); g.clip(); } g.drawImage(im,-w/2,-h,w,h); g.restore(); return true;
 }
 function drawTrainer(g,x,y,o={}){
-  if(o.sprite !== false && drawSprite(g, o.sprite || heroKey(o.step ? 2 : 1), x, y, o.h||124, (o.face||1) < 0, {bob:o.step?-Math.abs(o.step)*.6:0})) return;
+  if(o.sprite !== false){ const walking = o.walk || o.step, pose = o.sprite || heroKey(!walking ? 1 : o.dir==='up' ? 3 : o.dir==='down' ? 0 : 2);
+    const ph = o.walk ? o.walk/90 : 0, bob = walking ? -Math.abs(Math.sin(ph))*5 : 0, tilt = walking ? Math.sin(ph)*0.06 : 0; // passos: sobe/desce e balança de leve
+    g.save(); if(tilt){ g.translate(x, y); g.rotate(tilt); g.translate(-x, -y); } const ok = drawSprite(g, pose, x, y, o.h||124, (o.face||1) < 0 && (!walking || o.dir==='side' || !o.dir), {bob}); g.restore(); if(ok) return; }
   const st = o.step||0, f = o.face||1;
   g.fillStyle='#0004'; g.beginPath(); g.ellipse(x,y+4,26,9,0,0,7); g.fill();
   g.fillStyle=o.pants||'#253a66'; g.fillRect(x-11,y-34+Math.max(0,st),9,34-Math.max(0,st)); g.fillRect(x+2,y-34+Math.max(0,-st),9,34-Math.max(0,-st));
@@ -3128,10 +3155,14 @@ function drawMount(g, k, x, y, sc=1, face=1, step=0){
 const SADDLE = {cabrito:[-.08,.6], lagarto:[.03,.58], grifo:[-.02,.5], lobo:[-.14,.62]}; // posição da sela: fração da largura a partir do centro, fração da altura a partir do chão
 function drawRider(g, x, y, o={}){
   if(!o.mount) return drawTrainer(g,x,y,o);
-  const f = o.face||1; drawMount(g, o.mount, x, y, 1, f, o.step||0);
-  const key = o.sprite || heroKey(2), H = o.h||124, mi = monImg('m:'+o.mount), S = SADDLE[o.mount];
+  const f = o.face||1, step = o.step||0, lift = -Math.abs(step)*1.5; drawMount(g, o.mount, x, y, 1, f, step);
+  const H = o.h||124, mi = monImg('m:'+o.mount), S = SADDLE[o.mount];
   const sx = mi ? S[0]*150*mi.naturalWidth/mi.naturalHeight*f : -4*f, seat = mi ? S[1]*150 : 50;
-  if(CHAR[key] && CHAR[key].naturalWidth){ drawSprite(g, key, x+sx, y-seat+H*.28, H*.9, f<0, {noShadow:true, clipY:H*.9*.28}); return; }
+  const rk = `ride${(save&&save.costume)||(save&&save.hero)||'M'}`, rim = CHAR[rk];
+  if(rim && rim.complete && rim.naturalWidth){ const h = H*.86; // pose sentada: o quadril (≈62% da altura) fica na sela e sobe/desce junto com a montaria
+    drawSprite(g, rk, x+sx, y-seat+lift+h*.38, h, f<0, {noShadow:true}); return; }
+  const key = o.sprite || heroKey(2);
+  if(CHAR[key] && CHAR[key].naturalWidth){ drawSprite(g, key, x+sx, y-seat+lift+H*.28, H*.9, f<0, {noShadow:true, clipY:H*.9*.28}); return; }
   g.save(); g.beginPath(); g.rect(x-60,y-200,120,160); g.clip(); drawTrainer(g, x-4*f, y-34, {...o, step:0}); g.restore();
 }
 // ---- estado visual ----
@@ -3139,7 +3170,7 @@ const V = new WeakMap(); // por unidade: vida mostrada, barra, deslocamento, fla
 const vis = u => { let v=V.get(u); if(!v){ v={hp:u.hp,bar:u.hp,dx:0,dy:0,flash:0,alpha:1,ent:1}; V.set(u,v); } return v; };
 let loading = false;
 let B=null, team=[], anim=null, auto=false, speed=1, paused=false, waiting=null, selTarget=null, pending=null, floaters=[], combo=0, comboT=0, hold=0, energy=0;
-const ENERGY_MAX = 10; // barra verde (topo): enche ao bater/derrotar/apanhar; cheia, o Supremo do aliado vira cinema
+const ENERGY_MAX = 25; // barra verde (topo): enche ao bater/derrotar/apanhar; cheia, o Supremo do aliado vira cinema
 
 function posOf(u){ return u.boss ? BOSS_POS : POS[u.side][u.slot]; }
 function scaleOf(u){ return u.boss ? 1.45 : u.sub ? 1.05 : 0.85; }
@@ -3430,7 +3461,7 @@ function runAnim(d){
       else{ sfx('buff'); float(hx, top, STATL[h.buff]+' ↑', '#8dff6a', 22, 'stat'); }
     }
     if(u.side==='A'){ const k = a.ev.hits.filter(h=>h.ko).length; if(k){ combo+=k; comboT=1600; } }
-    { const dm = a.ev.hits.filter(h=>h.dmg!=null); if(dm.length && !a.ult) energy = Math.min(ENERGY_MAX, energy + (u.side==='A' ? 1 + (dm.some(h=>h.crit)?1:0) + 2*a.ev.hits.filter(h=>h.ko).length : 1)); }
+    { const dm = a.ev.hits.filter(h=>h.dmg!=null); if(dm.length && !a.ult) energy = Math.min(ENERGY_MAX, energy + (u.side==='A' ? 1 + (dm.some(h=>h.crit)?1:0) + a.ev.hits.filter(h=>h.ko).length : 1)); }
     setLog(); drawCombo();
   }
   if(p>=1){
@@ -3491,7 +3522,11 @@ function faceC(sp, face, form=0){ // retrato enquadrado (monstro inteiro, recort
   const c = document.createElement('canvas'); c.width = c.height = 120; c.getContext('2d').drawImage(src,0,0); return c; }
 function portrait(sp, face, form=0){
   const c = document.createElement('canvas'); c.width=c.height=120;
-  const g = c.getContext('2d'); g.fillStyle='#173f52'; g.fillRect(0,0,120,120);
+  const g = c.getContext('2d'); const bg = g.createRadialGradient(60,52,8,60,60,86); bg.addColorStop(0,'#2a6a92'); bg.addColorStop(1,'#0e2a44'); g.fillStyle = bg; g.fillRect(0,0,120,120);
+  const A = artOf(sp, form), im = A && monImg(A.id);
+  if(im){ const b = artBox(im), S = 104/Math.max(b.w, b.h), dw = b.w*S, dh = b.h*S; // retrato enquadrado pelo contorno da arte (monstro inteiro, centralizado)
+    g.fillStyle = '#0006'; g.beginPath(); g.ellipse(60, 114, dw*.34, 5, 0, 0, 7); g.fill();
+    g.save(); if(face<0){ g.translate(120,0); g.scale(-1,1); } g.drawImage(im, b.x, b.y, b.w, b.h, (120-dw)/2, 114-dh, dw, dh); g.restore(); return c; }
   drawCreature(g, sp, 60, 108, (SPECIES[sp].boss?1.4:1.55)/(form?1+0.08*form:1), face, {noShadow:true, form, box:[108,100]}); return c;
 }
 const mmss = sec => `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
@@ -3576,6 +3611,12 @@ function markSkillAdv(){ const u = waiting; if(!u || !B) return; const t = B.foe
     if(!T || !sk.power || sk.kind==='heal' || sk.kind==='buff' || sk.kind==='debuff') continue;
     const m = eff(sk.type, T), k = m>1 ? 'up' : m<1 ? 'dn' : 'eq';
     b.insertAdjacentHTML('beforeend', `<span class="adv ${k}" title="${m>1?'Super efetiva':m<1?'Pouco efetiva':'Efeito normal'} contra ${t.name||SPECIES[t.sp].name} (×${+m.toFixed(2)})"><i></i></span>`); } }
+// rolar arrastando (mouse) e sem barra de rolagem visível
+function dragScroll(el){ if(!el || el._drag) return; el._drag = true; el.classList.add('noBar'); let st = null;
+  el.addEventListener('pointerdown', e=>{ if(e.pointerType!=='mouse' || e.button!==0) return; st = {y:e.clientY, x:e.clientX, t:el.scrollTop, l:el.scrollLeft, moved:false}; });
+  addEventListener('pointermove', e=>{ if(!st) return; const dy = e.clientY-st.y, dx = e.clientX-st.x; if(Math.abs(dy)>5||Math.abs(dx)>5) st.moved = true; if(st.moved){ el.scrollTop = st.t - dy; el.scrollLeft = st.l - dx; } });
+  addEventListener('pointerup', ()=>{ if(st && st.moved){ el._justDragged = true; setTimeout(()=>el._justDragged=false, 50); } st = null; });
+  el.addEventListener('click', e=>{ if(el._justDragged){ e.stopPropagation(); e.preventDefault(); } }, true); }
 function showSkills(u){
   const box = $('skills'); box.textContent=''; $('hint').hidden = true; skTip(null); box.classList.toggle('compact', !!u && u.skills.length>3);
   if(!u) return;
@@ -3623,7 +3664,7 @@ function openProv(){ $('prov').hidden = false; const now = Date.now(), a = arena
   $('provTop').innerHTML = `<span class="pill">${ico('dia')}${save.diamonds||0}</span><span class="pill">${ico('gold')}${save.gold}</span><span class="pill">${ico('medalha')}${save.items.medalha||0}</span>`;
   const C = [{k:'arena', t:'Arena', d:`Ranking de ${ARENA_SIZE} treinadores. Você: N.${myRank(save)} · lutas hoje ${fightsLeft(save,now)}/${ARENA_DAILY}`, img:'bg/arenalobby.jpg', open:true},
     {k:'torre', t:'Torre dos Desafios', d:`Andar ${Math.min(TOWER_MAX, towerFloor(save)+1)}/${TOWER_MAX}. Cada andar tem uma regra de time; prêmios a cada 5.`, img:'bg/templo.jpg', open:true},
-    {k:'desafio', t:'Desafio Semanal', d:`Tipo da semana: ${weeklySetup(now, save.trainer.lv).wtype}. Só entram monstros desse tipo; até 10 Fragmentos Universais.`, img:'bg/weekly.jpg', open:true},
+    {k:'desafio', t:'Desafio Semanal', d:`Tipo da semana: ${weeklySetup(now, save.trainer.lv).wtype}. Só entram monstros desse tipo; até 10 Fragmentos S.`, img:'bg/weekly.jpg', open:true},
     {k:'bglobal', t:'BOSS Global', d:`${bgOpen(now)?'<b class="good">ABERTO</b>':'Abre às 20h'} · Hoje: ${SPECIES['mb'+bgBossOf(now).id].name}. Dano no ranking dá até 3 Pedras Mega.${save.trainer.lv<MEGA_TRAINER_LV?` <b class="bad">🔒 Treinador Nv ${MEGA_TRAINER_LV}</b>`:''}`, img:'bg/bglobal.jpg', open:true},
     {k:'expl', t:'Exploração', d:'2 salas com ranks C a SSS: Cartas de Evolução e Cartas de XP de Fusão.', img:'bg/pantano.jpg', open:true}];
   $('provCards').innerHTML = C.map(c=>`<button class="pcard${c.open?'':' soon'}" data-k="${c.k}" style="background-image:linear-gradient(#0000 35%,#06101cf0 78%),url(${c.img})"><b>${c.t}</b><span>${c.d}</span>${c.open?'<em>Entrar</em>':'<em class="lk">🔒 Em breve</em>'}</button>`).join('');
@@ -3768,7 +3809,7 @@ function openMon(sp){
   addEventListener('pointerup', ()=>{ if(d && d.moved){ L._noClick = true; setTimeout(()=>L._noClick=false, 0); } d = null; L.classList.remove('drag'); }); }
 function renderMon(){
   const c = save.owned[monSp], u = unitOf(monSp), S = SPECIES[monSp];
-  $('monTop').innerHTML = `<span>${ico('dia')}${save.diamonds||0}</span><span>${ico('gold')}${save.gold}</span><span>${ico('vit')}${vitNow(save,Date.now())}/${VIT_MAX}</span>`;
+  $('monTop').innerHTML = `<span>${ico('dia')}${save.diamonds||0}</span><span>${ico('gold')}${save.gold}</span><span>${ico('vit')}${vitNow(save,Date.now())}/${vitMax(save)}</span>`;
   const L = $('monList'), keep = L.scrollTop; L.textContent='';
   for(const sp of ownedList()){ const o = save.owned[sp], b = document.createElement('button'); b.className = 'mitem'+(sp===monSp?' on':'');
     b.append(portraitC(sp,1,o.form)); b.insertAdjacentHTML('beforeend', `<b>${o.lv}</b><span class="chip" style="background:${TYPES[SPECIES[sp].type]}">${SPECIES[sp].type}</span>${save.team.includes(sp)?'<em class="tm">T</em>':''}`);
@@ -3989,7 +4030,7 @@ function offerIcon(o){ const d = document.createElement('span'); d.className='ic
   d.insertAdjacentHTML('beforeend', `<b>${o.qty}</b>`); return d; }
 const buyDiaRaw = c => { if((save.diamonds||0) < c) return 'diamantes'; save.diamonds -= c; return null; };
 const offerName = o => o.item==='mskin' ? MOUNT_SKINS[o.k].name : o.item==='creature' ? `${SPECIES[o.sp].name} (criatura)` : o.item==='frag' ? `Fragmento de ${SPECIES[o.sp].name}` : o.item==='gold' ? 'Ouro' : o.item==='vit' ? 'VIT' : ITEMS[o.item].name;
-function openShop(){ $('shop').hidden = false; renderShop(); }
+function openShop(){ dragScroll($('shopGrid')); $('shop').hidden = false; renderShop(); }
 function renderShop(){
   const now = Date.now();
   $('shopTop').innerHTML = `<span class="pill">${ico('dia')}${save.diamonds||0}</span><span class="pill">${ico('gold')}${save.gold}</span><span class="pill">${ico('medalha')}${save.items.medalha||0} medalhas</span>`;
@@ -4024,7 +4065,7 @@ function renderShop(){
     $('shopFoot').innerHTML = `Próxima atualização: <span id="shopTimer"></span> <button class="big sm" id="reroll">Atualizar · ${REROLL_COST(sh.rerolls)} ouro</button>`; shopTimer();
     $('reroll').onclick = ()=>{ if(rerollShop(save, Date.now())) return toast('Ouro insuficiente para atualizar.'); persist(); renderShop(); };
   } else {
-    const st = arenaShopState(save, now), uni = save.items.fragU||0;
+    const st = arenaShopState(save, now), uni = save.items.fragS||0;
     for(const sp of featuredS(now)){ const has = !!save.owned[sp], S = SPECIES[sp], frags = fragsOf(save, sp);
       const lg = document.createElement('div'); lg.className = 'offer legend';
       lg.innerHTML = `<span style="font-size:14px">Grau S: ${S.name} (${S.types.join('/')})</span>`; lg.append(offerIcon({item:'creature', sp, qty:''}));
@@ -4138,7 +4179,7 @@ function label(g, x, y, txt, color){ g.font='800 15px "Baloo 2",sans-serif'; g.t
 function stepToward(o, tx, ty, sp, dt){
   const dx = tx-o.x, dy = ty-o.y, d = Math.hypot(dx,dy); if(d<4) return true;
   const st = Math.min(d, sp*dt/1000), nx = o.x+dx/d*st, ny = o.y+dy/d*st;
-  if(Math.abs(dx)>2) o.face = dx>0?1:-1;
+  if(Math.abs(dx)>2) o.face = dx>0?1:-1; o.dir = Math.abs(dy) > Math.abs(dx)*1.3 ? (dy<0?'up':'down') : 'side';
   if(!blocked(nx,ny)){ o.x=nx; o.y=ny; } else if(!blocked(nx,o.y)){ o.x=nx; } else if(!blocked(o.x,ny)){ o.y=ny; } else return true;
   o.walk += dt; return false;
 }
@@ -4184,7 +4225,7 @@ function renderCity(ts){
   for(const w of WANDER){ items.push({y:w.y, d:()=>{ CS(g,w.x,w.y,()=>drawTrainer(g,w.x,w.y,{shirt:w.shirt,cap:w.cap,hair:w.hair,face:w.face,step:w.walk?Math.sin(w.walk/90)*6:0, sprite:`tr_${WANDER.indexOf(w)%6}`})); label(g,w.x,w.y-95,w.name,w.real?'#ffd25a':'#bff4ff'); if(w.sayT>0) bubble(g, w.x, w.y-112, w.say); }});
     items.push({y:w.py, d:()=>{ drawCreature(g,w.sp,w.px,w.py,.64,w.face,{form:w.form}); }}); }
   const sp0 = save.team[0], o0 = save.owned[sp0];
-  items.push({y:me.y, d:()=>{ CS(g,me.x,me.y,()=>drawRider(g,me.x,me.y,{face:me.face, step:me.walk?Math.sin(me.walk/90)*6:0, mount:save.mount&&save.mount.cur})); label(g,me.x,me.y-95,'Você','#7fe0ff'); }});
+  items.push({y:me.y, d:()=>{ CS(g,me.x,me.y,()=>drawRider(g,me.x,me.y,{face:me.face, dir:me.dir, walk:me.walk||0, step:me.walk?Math.sin(me.walk/90)*6:0, mount:save.mount&&save.mount.cur})); label(g,me.x,me.y-95,'Você','#7fe0ff'); }});
   items.push({y:pet.y, d:()=>{ drawCreature(g,sp0,pet.x,pet.y,.72,me.face,{form:o0.form, bob:Math.sin(ts/200)*2}); label(g,pet.x,pet.y-48,unitOf(sp0).name,'#7dff6a'); }});
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
   if(me.tx!=null){ g.strokeStyle='#ffd25a'; g.lineWidth=3; g.beginPath(); g.ellipse(me.tx,me.ty,18,7,0,0,7); g.stroke(); }
@@ -4289,7 +4330,8 @@ function renderCityHud(){
     mb.classList.toggle('none', !(m && m.cur)); const o = mb.querySelector('.dotn'); if(o) o.remove(); if(m && m.cur && (save.items.feno||0) > 0 && !(mountFinal(save) && m.lv>=MOUNT_LV_MAX)) mb.insertAdjacentHTML('beforeend','<b class="dotn">!</b>'); }
   
   const T = titleOf(save);
-  $('cRes').innerHTML = `<div class="cName"><b>${(save.name||'Treinador').replace(/</g,'')}</b>${titleBadge(T,'sm')}</div><span class="pill">${ico('dia')}<em>+</em>${fmtN(save.diamonds||0)}</span><span class="pill">${ico('gold')}<em>+</em>${fmtN(save.gold)}</span><span class="pill">${ico('vit')}<em>+</em>${vitNow(save,now)}/${VIT_MAX}</span>`;
+  $('cRes').innerHTML = `<div class="cName"><b>${(save.name||'Treinador').replace(/</g,'')}</b>${titleBadge(T,'sm')}</div><span class="pill">${ico('dia')}<em>+</em>${fmtN(save.diamonds||0)}</span><span class="pill pbtn" data-buy="gold" role="button" title="Trocar diamantes por ouro">${ico('gold')}<em>+</em>${fmtN(save.gold)}</span><span class="pill pbtn" data-buy="vit" role="button" title="Comprar VIT">${ico('vit')}<em>+</em>${vitNow(save,now)}/${vitMax(save)}</span>`;
+  $('cRes').querySelectorAll('[data-buy]').forEach(b=> b.onclick = ()=> b.dataset.buy==='gold' ? openGoldEx() : openVitBuy());
   const dot = (id,n)=>{ const b = $(id); if(!b) return; const o = b.querySelector('.dotn'); if(o) o.remove(); if(n) b.insertAdjacentHTML('beforeend', `<b class="dotn">${n}</b>`); };
   dot('cbAch', featOpen('ach') && achReady()); dot('cbEvt', featOpen('evt') && evtReady()); dot('cbLogin', !featOpen('login') || loginToday().claimed ? 0 : '!'); renderFeatLocks();
   const L = $('cMisList'); L.textContent=''; for(const m of missions()){ const b = document.createElement('button'); b.innerHTML = m.t; b.onclick = m.go; L.append(b); }
@@ -4596,7 +4638,7 @@ function renderExpl(){
       <div class="xbody"><div class="xl1"><span>Poder Recomendado:</span><b>${recPower(id)}</b><span class="xst">${[0,1,2,3].map(j=>`<i class="${j<best?'on':''}">★</i>`).join('')}</span></div>
       <div class="xl2"><small>Drop Principal<br>de Itens</small><div class="xds">${drops}</div><span class="xvit">Consumo: ${ico('vit')}${st.vit}</span></div></div>
       <div class="xbt">${rec.clears?`<button class="big alt sm" data-bot="${id}" data-n="1">BOT</button><button class="big alt sm" data-bot="${id}" data-n="10">BOT ×10</button>`:''}<button class="big sm" data-go="${id}" ${open?'':'disabled'}>${open?'Entrar':'🔒'}</button></div></div>`; });
-  $('explList').innerHTML = rows.reverse().join('') + `<p class="xfoot">${R.name}: ${R.what}. Cada rank libera ao vencer o anterior. VIT ${vitNow(save,now)}/${VIT_MAX}.</p>`;
+  $('explList').innerHTML = rows.reverse().join('') + `<p class="xfoot">${R.name}: ${R.what}. Cada rank libera ao vencer o anterior. VIT ${vitNow(save,now)}/${vitMax(save)}.</p>`;
   $('explList').querySelectorAll('[data-go]').forEach(b=>b.onclick = ()=>{ const id = b.dataset.go; if(!unlocked(save,id)) return toast('Vença o rank anterior primeiro.'); fromCity = !$('city').hidden; enter(id); if(B && curStage===id) $('expl').hidden = true; });
   $('explList').querySelectorAll('[data-bot]').forEach(b=>b.onclick = ()=>{ curStage = b.dataset.bot; doBot(+b.dataset.n); renderExpl(); });
   const first = $('explList').querySelector('.xrow:not(.lk)'); // mostra o rank mais alto liberado
@@ -4622,7 +4664,7 @@ function openWeekly(){ const now = Date.now(), st = weeklySetup(now, save.traine
   const mon = new Date(now); mon.setHours(24,0,0,0); while(mon.getDay()!==1) mon.setDate(mon.getDate()+1);
   const html = `<div class="wk"><p>Tipo da semana: <span class="tchip" style="--tc:${TYPES[T]}">${T}</span> — <b>só entram monstros com o tipo ${T}</b>. Os inimigos são fracos contra ele, mas fortes (Nv ${st.waves[0][0].split('@')[1]}+).</p>
     <div class="wkb">${MONIMG['b:'+boss]?`<img alt="" src="${MONIMG['b:'+boss].src}">`:''}<span>Chefe: <b>${SPECIES[boss].name}</b><br>Poder recomendado ${recPower('desafio')}<br>Seu time: ${ok?`<b class="good">${teamPower()}</b>`:'<b class="bad">não serve</b>'}</span></div>
-    <div class="wks">${WEEKLY_RW.map((n,i)=>`<span class="${W.got>i?'got':''}">${'★'.repeat(i+1)}<em>${ico('fragU')}${n}</em></span>`).join('')}</div>
+    <div class="wks">${WEEKLY_RW.map((n,i)=>`<span class="${W.got>i?'got':''}">${'★'.repeat(i+1)}<em>${ico('fragS')}${n}</em></span>`).join('')}</div>
     <p style="font-size:14px">Entradas hoje: ${Math.max(0,left)}/${ELITE_DAILY} · VIT ${vitCost('desafio')} · renova em ${hm(mon-now)}. Seus monstros ${T}: ${fit.length ? fit.slice(0,4).map(sp=>unitOf(sp).name).join(', ') : '<b class="bad">nenhum</b>'}.</p></div>`;
   popSeq([{rib:'Evento', title:'Desafio Semanal', btn:'Entrar', html, after:(P,b)=>{
     P.querySelector('.go').insertAdjacentHTML('afterbegin','<button class="big alt" id="wkTeam" style="margin-right:10px">Time</button><button class="big alt" id="wkNo" style="margin-right:10px">Fechar</button>');
@@ -4652,7 +4694,7 @@ function openTower(){ const now = Date.now(), f = towerFloor(save), n = Math.min
   const nextPrize = [...Array(10)].map((_,k)=>n+k).find(x=>towerPrize(x)), P0 = nextPrize && towerPrize(nextPrize);
   const html = f>=TOWER_MAX ? '<p>Você venceu os 100 andares! 🏆</p>' : `<div class="wk"><p><b>Andar ${n}</b> · Regra: <b>${st.rule.txt}</b>${st.rule.T?` <span class="tchip" style="--tc:${TYPES[st.rule.T]}">${st.rule.T}</span>`:''}</p>
     <div class="wkb">${MONIMG['b:'+boss]?`<img alt="" src="${MONIMG['b:'+boss].src}">`:`<img alt="" src="${artSrc(boss)}">`}<span>Chefe: <b>${SPECIES[boss].name}</b><br>Poder recomendado ${recPower('torre')}<br>Seu time: ${ok?`<b class="good">${teamPower()}</b>`:'<b class="bad">não cumpre a regra</b>'}</span></div>
-    ${P0?`<p>Próximo prêmio no andar ${nextPrize}: ${ico('dia')}${P0.dia} ${ico('fragU')}${P0.fragU}${P0.card?` ${ico(P0.card)}1`:''}</p>`:''}
+    ${P0?`<p>Próximo prêmio no andar ${nextPrize}: ${ico('dia')}${P0.dia} ${ico(P0.frag)}${P0.fq}${P0.card?` ${ico(P0.card)}1`:''}</p>`:''}
     <ul class="twl">${next}</ul><p style="font-size:14px">Tentativas hoje: ${Math.max(0,left)}/${TOWER_DAILY} · sem VIT.</p></div>`;
   popSeq([{rib:'Provação', title:'Torre dos Desafios', btn: f>=TOWER_MAX ? 'Fechar' : 'Entrar', html, after:(P,b)=>{
     P.querySelector('.go').insertAdjacentHTML('afterbegin','<button class="big alt" id="twTeam" style="margin-right:10px">Time</button><button class="big alt" id="twNo" style="margin-right:10px">Fechar</button>');
@@ -4834,7 +4876,7 @@ function renderMap(){
   drawMap();
   const f = save.farm, acc = f ? Math.min(FARM_CAP_MS, Date.now()-f.last) : 0;
   const wr = weekendRegion(Date.now());
-  $('topbar').innerHTML = `${wr?`<span class="tpill evtw" title="Evento de fim de semana">🎉 ${REGIONS.find(r=>r.id===wr).name}: VIT ½ · fragmentos ×2</span>`:''}<span class="tplate">Treinador Nv ${save.trainer.lv}</span><span class="tpill">${ico('vit')}VIT ${vitNow(save,Date.now())}/${VIT_MAX}</span><span class="tpill">${ico('gold')}${save.gold}</span><span class="tpill">${ico('dia')}${save.diamonds||0}</span>`;
+  $('topbar').innerHTML = `${wr?`<span class="tpill evtw" title="Evento de fim de semana">🎉 ${REGIONS.find(r=>r.id===wr).name}: VIT ½ · fragmentos ×2</span>`:''}<span class="tplate">Treinador Nv ${save.trainer.lv}</span><span class="tpill">${ico('vit')}VIT ${vitNow(save,Date.now())}/${vitMax(save)}</span><span class="tpill">${ico('gold')}${save.gold}</span><span class="tpill">${ico('dia')}${save.diamonds||0}</span>`;
   $('farmBox').hidden = !f;
   if(f) $('farmBox').innerHTML = `<b>Farm ${STAGES[f.stage].name}</b><span class="ft">⏱ ${hm(acc)}/8h</span><span>${Math.floor(acc/f.cycleMs)} vitórias</span><button class="fbtn${acc>=FARM_CAP_MS?' full':''}" id="farmPill">Coletar</button>`;
   if(f) $('farmPill').onclick = ()=>collectNow('Farm coletado');
@@ -4968,7 +5010,7 @@ function openRegion(ri, pick){
     + (R.first.creature && !(rec&&rec.clears) ? `<div class="tile"></div>` : '')
     + (st.dungeon ? `<div class="tile"><span class="ic"><i style="background:linear-gradient(135deg,#ffe84a,#c08aff)"></i></span><span class="q">×1</span>Acessório<span class="tag">sempre</span></div>` : '');
   if(R.first.creature && !(rec&&rec.clears)){ const t = $('rpDrops').lastElementChild; t.append(portrait(R.first.creature,1)); t.insertAdjacentHTML('beforeend', `${SPECIES[R.first.creature].name}<span class="tag">1ª vitória</span>`); }
-  $('rpMsg').textContent = `VIT ${vitNow(save,Date.now())}/${VIT_MAX}`;
+  $('rpMsg').textContent = `VIT ${vitNow(save,Date.now())}/${vitMax(save)}`;
   const won = !!(rec && rec.clears);
   $('bot1').disabled = $('bot10').disabled = !won; $('bot1').title = $('bot10').title = won ? `Varredura sem batalha: ${vitCost(pick)} VIT cada, paga ${Math.round(STAR_MULT[rec.best]*100)}% (melhor nota ${rec.best}★)` : 'Vença a instância uma vez para liberar';
   $('farmHere').hidden = st.elite || st.dungeon; $('farmHere').disabled = !won; $('farmHere').textContent = save.farm && save.farm.stage===pick ? 'Farm ativo ✓' : 'Farm offline';
@@ -5034,7 +5076,7 @@ function rollBonus(id){ let r = Math.random()*100; const o = BONUS_TABLE.find(x=
 const bonusTxt = p => `${ico(p.item)} ×${p.qty}`;
 function chestStep(id){
   const prizes = [0,1,2].map(()=>rollBonus(id));
-  return {rib:'Bônus da vitória', title:'Escolha um baú!', btn:'Continuar', wait:99999, html:`<div class="pickc">${[0,1,2].map(i=>`<button data-i="${i}" aria-label="Baú ${i+1}">${imgOr('bau'+i,'ui/i_11.png')}</button>`).join('')}</div><p style="margin:4px 0 0;font-size:14px;color:#9fe8ff">Toque num baú para abrir. Os outros mostram o que tinham.</p>`,
+  return {rib:'Bônus da vitória', title:'Escolha um baú!', btn:'Continuar', wait:99999, html:`<div class="pickc">${[0,1,2].map(i=>`<button data-i="${i}" aria-label="Baú ${i+1}">${imgOr('bau2','ui/i_11.png')}</button>`).join('')}</div><p style="margin:4px 0 0;font-size:14px;color:#9fe8ff">Toque num baú para abrir. Os outros mostram o que tinham.</p>`,
     after:(P, go)=>{ const bs = [...P.querySelectorAll('.pickc button')]; bs.forEach(b=>b.onclick = ()=>{ const i = +b.dataset.i, p = prizes[i]; bs.forEach(x=>x.onclick=null);
       b.classList.add('wob'); sfx('shake'); setTimeout(()=>{ try{ if(p.item==='dia') save.diamonds = (save.diamonds||0)+p.qty; else give(save, p.item, p.qty); persist(); sfx('chest');
         const im = b.querySelector('img'); im.onerror = null; im.src = UI_IMG('bauA'); im.onerror = ()=>{ im.onerror = null; im.src = 'ui/i_11.png'; }; b.insertAdjacentHTML('beforeend', `<span class="prz">${bonusTxt(p)}</span>`);
@@ -5088,7 +5130,7 @@ const achProg = a => Math.min(a.goal, ACH_PROG[a.key](save));
 const achDone = a => achProg(a) >= a.goal;
 const achReady = () => ACH.filter(a=>achDone(a) && !achS().claimed[a.id]).length;
 let achCat = 'aventura';
-function openAch(){ $('ach').hidden = false; renderAch(); }
+function openAch(){ $('ach').hidden = false; dragScroll($('achList')); renderAch(); }
 function renderAch(){
   const A = achS(), tot = ACH.filter(a=>A.claimed[a.id]).length;
   $('achTop').innerHTML = `<span class="pill">${ico('dia')}${save.diamonds||0}</span><span class="pill">${ico('gold')}${save.gold}</span>`;
@@ -5104,7 +5146,7 @@ function renderAch(){
   $('achList').querySelectorAll('[data-go]').forEach(b=>b.onclick = ()=>{ $('ach').hidden = true; if(b.dataset.go==='login') return openLogin(true); goTo(b.dataset.go); });
 }
 // ===== Login diário (7 dias, como no vídeo) =====
-const LOGIN_RW = [{gold:2000},{item:'pocaoXP',qty:5},{item:'fruta',qty:5},{dia:30},{item:'libInt1',qty:2},{item:'fragU',qty:5},{dia:100,item:'evoR',qty:1}];
+const LOGIN_RW = [{gold:2000},{item:'pocaoXP',qty:5},{item:'fruta',qty:5},{dia:30},{item:'libInt1',qty:2},{item:'fragA',qty:5},{dia:100,item:'evoR',qty:1}];
 function loginS(){ return save.login || (save.login = {streak:0, last:null, total:0}); }
 function loginToday(){ const L = loginS(), k = dayKey(Date.now()), y = dayKey(Date.now()-864e5); if(L.last===k) return {claimed:true, idx:(L.streak-1)%7}; const cont = L.last===y; return {claimed:false, idx:cont ? L.streak%7 : 0, cont}; }
 function claimLogin(){ const L = loginS(), t = loginToday(); if(t.claimed) return null; const R = LOGIN_RW[t.idx];
@@ -5115,7 +5157,7 @@ function openLogin(force){ const t = loginToday(); if(t.claimed && !force) retur
   popSeq([{rib:'Login Diário', title:'Prêmio de hoje', btn:t.claimed?'Fechar':'Coletar', html:`<div class="logd">${LOGIN_RW.map((R,i)=>`<div class="ld${i<t.idx||(t.claimed&&i===t.idx)?' got':''}${i===t.idx&&!t.claimed?' today':''}${i===6?' big':''}"><small>Dia ${i+1}</small><div>${rwTxt(R)}</div>${i<t.idx||(t.claimed&&i===t.idx)?'<span class="ck">✔</span>':''}</div>`).join('')}</div><p style="margin:6px 0 0;font-size:14px;color:#9fe8ff">Entre todos os dias seguidos para chegar ao prêmio do Dia 7. Se faltar um dia, recomeça do Dia 1.</p>`,
     after:(P,b)=>{ if(t.claimed) return; b.onclick = ()=>{ const R = claimLogin(); if(R){ sfx('chest'); toast('Login diário: '+rwTxt(R).replace(/<[^>]+>/g,'')); } $('rpop').hidden = true; $('rpop').innerHTML = ''; if(!$('city').hidden) renderCityHud(); }; }}]); }
 // ===== Evento diário (tarefas do dia, painel laranja como no vídeo) =====
-const EVT = [{k:'wins', n:5, t:'Vença 5 batalhas hoje', rw:{gold:1500}}, {k:'caps', n:3, t:'Abra 3 cápsulas hoje', rw:{item:'fragU',qty:3}}, {k:'arena', n:3, t:'Lute 3 vezes na Arena hoje', rw:{item:'medalha',qty:20}}, {k:'bot', n:5, t:'Use o BOT 5 vezes hoje', rw:{item:'pocaoXP',qty:5}}, {k:'all', n:4, t:'Complete as 4 tarefas acima', rw:{dia:50}}];
+const EVT = [{k:'wins', n:5, t:'Vença 5 batalhas hoje', rw:{gold:1500}}, {k:'caps', n:3, t:'Abra 3 cápsulas hoje', rw:{item:'fragB',qty:3}}, {k:'arena', n:3, t:'Lute 3 vezes na Arena hoje', rw:{item:'medalha',qty:20}}, {k:'bot', n:5, t:'Use o BOT 5 vezes hoje', rw:{item:'pocaoXP',qty:5}}, {k:'all', n:4, t:'Complete as 4 tarefas acima', rw:{dia:50}}];
 const evtProg = e => { const d = dailyS(); return e.k==='all' ? EVT.filter(x=>x.k!=='all' && (d[x.k]||0)>=x.n).length : Math.min(e.n, d[e.k]||0); };
 const evtReady = () => EVT.filter(e=>evtProg(e)>=e.n && !dailyS().got[e.k]).length;
 function openEvt(){ const d = dailyS(), mid = new Date(); mid.setHours(24,0,0,0);
@@ -5131,27 +5173,27 @@ function openFrag(){ $('frag').hidden = false; fragPage = 0; fragSel = null; ren
 function renderFrag(){
   const L = fragList(), pages = Math.max(1, Math.ceil(L.length/FRAG_PER)); fragPage = Math.min(fragPage, pages-1);
   const page = L.slice(fragPage*FRAG_PER, fragPage*FRAG_PER+FRAG_PER); if(!fragSel || !L.includes(fragSel)) fragSel = page[0];
-  const uni = save.items.fragU||0, sp = fragSel;
-  $('fragTop').innerHTML = `<span class="pill" title="Fragmento Universal: só em eventos exclusivos">${ico('fragU')}${uni}</span><span class="pill">${ico('gold')}${save.gold}</span>`;
+  const sp = fragSel, uni = sp ? (save.items[rankFrag(sp)]||0) : 0;
+  $('fragTop').innerHTML = `${['fragB','fragA','fragS'].map(k=>`<span class="pill" title="${ITEMS[k].name}: ${ITEMS[k].desc}">${ico(k)}${save.items[k]||0}</span>`).join('')}<span class="pill">${ico('gold')}${save.gold}</span>`;
   if(!$('fragType')){ $('frag').insertAdjacentHTML('beforeend', `<select id="fragType" aria-label="Filtrar por tipo"><option value="">Todos Atributos</option>${Object.keys(TYPES).map(t=>`<option>${t}</option>`).join('')}</select>`);
     $('fragType').onchange = e=>{ fragType = e.target.value; fragPage = 0; fragSel = null; renderFrag(); }; }
   if(sp){ const s = SPECIES[sp], u = mkUnit(sp,'A',0,1);
     $('fragDet').innerHTML = `<h3>${s.name} <span class="gr" style="background:${GRADE_COLOR[s.grade]||'#888'}">${s.grade}</span></h3>
       <div class="vit"><small>Valor Individual Total</small><b>${power(u)}</b></div>${radarSvg(u.st)}
       <small class="fsec">Habilidades</small><div class="skStrip">${u.skills.map(k=>`<span title="${SKILLS[k].name}"><i style="background-image:url(${skillIcon(k)})"></i><b>${SKILLS[k].name}</b></span>`).join('')}</div>
-      <small class="fsec">Como obter</small><p class="fhow">${s.grade==='S'?'Lendário: fragmentos na Loja da Arena (em destaque) e na Cápsula Rara.':'Fragmentos nas Cápsulas.'} O Fragmento Universal vale para qualquer criatura e só vem de eventos exclusivos.</p>`; }
+      <small class="fsec">Como obter</small><p class="fhow">${s.grade==='S'?'Lendário: fragmentos na Loja da Arena (em destaque) e na Cápsula Rara.':'Fragmentos nas Cápsulas.'} O Fragmento ${rankFrag(sp).slice(4)} completa o que faltar em qualquer monstro de grau ${rankFrag(sp)==='fragB'?'C ou B':rankFrag(sp)==='fragA'?'A':'S'}.</p>`; }
   const G = $('fragGrid'); G.textContent = '';
   for(const x of page){ const S = SPECIES[x], n = fragsOf(save,x), need = fragNeed(x), own = !!save.owned[x], ok = !own && n + uni >= need;
     const b = document.createElement('div'); b.className = 'fcard'+(x===sp?' sel':'')+(own?' own':'');
     b.innerHTML = `<div class="fpic"><img alt="" loading="lazy" src="${artSrc(x)}"><span class="ftp">${S.types.map(t=>`<i style="background:${TYPES[t]}">${t}</i>`).join('')}</span><span class="fcnt">${ico('frag')}${n}/${need}</span></div><button class="big sm"${ok?'':' disabled'}>${own?'Obtido':'Invocar'}</button>`;
     b.querySelector('.fpic').onclick = ()=>{ fragSel = x; sfx('click'); renderFrag(); };
     b.querySelector('button').onclick = ()=>{ const useU = Math.max(0, need - n);
-      popSeq([{rib:'Invocar', title:S.name, btn:'Confirmar', html:`<div class="fart" style="height:170px"><img alt="" src="${artSrc(x)}"></div><p>Usar <b>${Math.min(n,need)}</b> Fragmentos de ${S.name}${useU?` + <b>${useU}</b> Universais`:''} para invocar <b>${S.name}</b>?</p>`,
+      popSeq([{rib:'Invocar', title:S.name, btn:'Confirmar', html:`<div class="fart" style="height:170px"><img alt="" src="${artSrc(x)}"></div><p>Usar <b>${Math.min(n,need)}</b> Fragmentos de ${S.name}${useU?` + <b>${useU}</b> ${ITEMS[rankFrag(x)].name}`:''} para invocar <b>${S.name}</b>?</p>`,
         after:(P,bt)=>{ bt.onclick = ()=>{ const e = summonFrag(save, x); $('rpop').hidden = true; if(e && e!=='deposito') return toast(e==='tem'?'Você já tem essa criatura.':'Fragmentos insuficientes.'); persist(); popSeq([captureStep(x, e!=='deposito')], ()=>renderFrag()); };
           P.querySelector('.go').insertAdjacentHTML('afterbegin','<button class="big alt" id="fragNo" style="margin-right:10px">Cancelar</button>'); $('fragNo').onclick = ()=>{ $('rpop').hidden = true; }; }}]); };
     G.append(b); }
   if(!page.length) G.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#9fe8ff">Nenhuma criatura desse tipo.</p>';
-  $('fragFoot').innerHTML = `<span>Fragmentos vêm das Cápsulas e da Loja da Arena. Universais: só em eventos.</span><span class="fpg"><button class="big alt sm" id="fragPrev"${fragPage?'':' disabled'}>‹</button><b>${fragPage+1}/${pages}</b><button class="big alt sm" id="fragNext"${fragPage<pages-1?'':' disabled'}>›</button></span>`;
+  $('fragFoot').innerHTML = `<span>Fragmentos vêm das Cápsulas e da Loja da Arena. Fragmentos B, A e S completam qualquer monstro do mesmo grau.</span><span class="fpg"><button class="big alt sm" id="fragPrev"${fragPage?'':' disabled'}>‹</button><b>${fragPage+1}/${pages}</b><button class="big alt sm" id="fragNext"${fragPage<pages-1?'':' disabled'}>›</button></span>`;
   $('fragPrev').onclick = ()=>{ fragPage--; fragSel = null; renderFrag(); }; $('fragNext').onclick = ()=>{ fragPage++; fragSel = null; renderFrag(); };
 }
 // ===== Treino da montaria com críticos (Crít ×2 / ×10) e Auto Treino, como no vídeo =====
@@ -5230,7 +5272,7 @@ function renderRank(){
   const fade = g.createLinearGradient(560,0,640,0); fade.addColorStop(0,'#08142a00'); fade.addColorStop(1,'#08142a'); g.fillStyle = fade; g.fillRect(560,0,540,H);
   const pods = $('rankPods'); pods.textContent = '';
   [2,1,0].forEach(i=>{ const r = rows[i]; if(!r) return; const [px,py] = P[i], sc = i===0?1.2:1;
-    drawCreature(g, r.team[0].sp, px-30*sc, py-6, .95*sc, 1, {form:r.team[0].form}); trainerAt(g, px+26*sc, py-2, 1.1*sc, r.me ? undefined : `tr_${r.id%6}`);
+    trainerAt(g, px+34*sc, py-8, 1.0*sc, r.me ? undefined : `tr_${r.id%6}`); drawCreature(g, r.team[0].sp, px-40*sc, py+4, .9*sc, 1, {form:r.team[0].form, box:[110*sc,100*sc]}); // monstro na frente do treinador
     pods.insertAdjacentHTML('beforeend', `<div class="rpod p${i+1}" style="left:${px}px;top:${py+44}px"><b>${i+1}º ${r.name}</b><span>${rankVal(rankTab,r)}</span></div>`); });
   // lista
   const L = $('rankList'), show = rows.slice(0, 50); L.textContent = '';
