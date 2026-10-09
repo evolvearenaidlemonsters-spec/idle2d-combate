@@ -3227,7 +3227,7 @@ const THEMES = {
 };
 THEMES.bglobal = THEMES.templo; THEMES.weekly = THEMES.templo; // fundos pintados próprios (bg/bglobal.jpg, bg/weekly.jpg)
 // Cenários pintados (arte final): quando a imagem existe, substitui o cenário desenhado em código
-const BG_IMGS = Object.fromEntries(['praia','bosque','caverna','vulcao','pico','usina','pantano','templo','dungeon','arena','bglobal','weekly'].map(k=>{ const im = new Image(); im.onload = ()=>{ bg = null; refreshArt(); }; im.src = `bg/${k}.jpg?v=92`; return [k, im]; }));
+const BG_IMGS = Object.fromEntries(['praia','bosque','caverna','vulcao','pico','usina','pantano','templo','dungeon','arena','bglobal','weekly'].map(k=>{ const im = new Image(); im.onload = ()=>{ bg = null; refreshArt(); }; im.src = `bg/${k}.jpg?v=93`; return [k, im]; }));
 function drawBg(){
   const stg = B && STAGES[B.stage], tk = stg ? (stg.theme || REGIONS.find(r=>r.id===stg.region).theme) : 'praia', T = THEMES[tk];
   const c = document.createElement('canvas'); c.width=W*K; c.height=H*K;
