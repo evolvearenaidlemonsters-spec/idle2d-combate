@@ -356,3 +356,19 @@ A Beatriz pediu: **toda atualização nova vai para o link dos amigos**. Depois 
 - Ranking: monstro desenhado na frente do treinador.
 - Fragmentos por grau: itens fragB/fragA/fragS (rankFrag), FRAG_NEED C10 B20 A40 S80; v13 converte fragU→fragA. Fontes: Torre (B a cada 5; A/S a cada 10), Evento caps→B, Login→A, Elite/Exploração/Pesadelo→A, Desafio Semanal→S.
 - Iniciais: Lumbrael (dex20132), Fanmamaão (dex20521), Psiananar (dex20851).
+
+## v8.6 (08/10, 22h55) — publicada no link e no artifact (dona liberou)
+- Ultimate: ENERGY_MAX 25; ganho aliado 1 (+1 crítico, +1 por nocaute), inimigo 1.
+- Baús do bônus de vitória: os 3 iguais (ui/bau_2 dourado), prêmio escondido.
+- VIT: vitMax(save) = 80 + 2 por nível (máx. 200). Compra de VIT: 120 por 40💎 (até 3/dia), tocando na VIT da cidade.
+- Ouro: tocar no ouro da cidade troca 10💎 → 10.000 ouro, até 2×/dia (buyGoldEx).
+- Faixa do título no Perfil menor.
+- Inclui as correções de andar/montaria, fragmentos B/A/S, iniciais novos (ver seção anterior).
+- Regra de publicação volta a ser: só atualizar o link quando a dona pedir.
+
+## 08/10 23h50 (só artifact)
+- HUD da cidade "Tema Madeira v10" (retrato com moldura dourada, faixa do título, barra de EXP, placas de recursos, quadro de Missão, barra inferior de madeira).
+- Monstros: botão Harmonia removido; "Pool de XP" → "Nível"; "Evoluir" → "Evolução"; rank (grau B/A/S…) em badge (gradeTag) na lista, no cabeçalho e no Depósito.
+- Intimidade: intNeed = 20+10·Nv, Fruta +10; abaixo do limite só aparece a Fruta, no limite só o Pergaminho.
+- Ícones novos ui/ic_mon, ic_team, ic_dex na barra da cidade.
+- Cápsula: metades se separam + anel + faíscas + cartas viram; animação da cápsula ignora "reduzir movimento".

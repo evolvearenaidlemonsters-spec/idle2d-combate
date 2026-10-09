@@ -41,11 +41,11 @@ sv.vit={cur:5,at:now}; assert.strictEqual(E.tryEnter(sv,'praia-2',now),'vit');
 const bosses=E.ELITE_ORDER.map(id=>E.STAGES[id].waves.at(-1)[1].split('@')[0]); assert.strictEqual(new Set(bosses).size,40); assert(bosses.every(b=>E.SPECIES[b].boss));
 
 // progressão: Pool de XP, intimidade com limite, Pergaminho, habilidades, transformação
-sv=E.newSave(); sv.trainer.lv=99; sv.items={pocaoXP:3, fruta:40, libInt1:3, evoC:2}; sv.gold=5000;
+sv=E.newSave(); sv.trainer.lv=99; sv.items={pocaoXP:3, fruta:200, libInt1:3, evoC:2}; sv.gold=5000;
 assert.strictEqual(E.fillPool(sv),3); assert.strictEqual(sv.xpPool,300); assert(!sv.items.pocaoXP);
 const up=E.levelUp(sv,'brasilho',10); assert(up>0 && sv.owned.brasilho.lv===1+up && sv.xpPool>=0);
 const p0=E.power(E.mkUnit('brasilho','A',0,E.progOf(sv.owned.brasilho)));
-E.feed(sv,'brasilho',40); assert.strictEqual(sv.owned.brasilho.int,10,'para no limite 10'); assert(sv.items.fruta>0,'sobram frutas no limite');
+E.feed(sv,"brasilho",190); assert.strictEqual(sv.owned.brasilho.int,10,'para no limite 10'); assert(sv.items.fruta>0,'sobram frutas no limite');
 assert.strictEqual(E.mkUnit('brasilho','A',0,E.progOf(sv.owned.brasilho)).skills.length,3,'sem habilidade nova antes de avançar');
 assert.strictEqual(E.breakCap(sv,'brasilho'),'lancaChamas'); assert.strictEqual(sv.owned.brasilho.cap,20); assert.strictEqual(sv.items.libInt1,1);
 assert.deepStrictEqual(E.mkUnit('brasilho','A',0,E.progOf(sv.owned.brasilho)).skills.slice(3),['lancaChamas']);
@@ -57,7 +57,7 @@ assert.strictEqual(E.canTransform(sv,'brasilho'),'nivel'); sv.owned.brasilho.lv=
 const pb=E.power(E.mkUnit('brasilho','A',0,E.progOf(sv.owned.brasilho))); assert(E.transform(sv,'brasilho') && sv.owned.brasilho.form===1);
 assert(E.power(E.mkUnit('brasilho','A',0,E.progOf(sv.owned.brasilho)))>pb*1.15,'transformação fortalece'); assert.strictEqual(E.mkUnit('brasilho','A',0,E.progOf(sv.owned.brasilho)).name,'Brasador');
 assert.strictEqual(E.canTransform(sv,'brasilho'),'nivel'); assert.strictEqual(E.FORMS.faiscol.length,4); assert(E.FORMS.faiscol[3].shiny);
-assert.deepStrictEqual([0,1,2,3,4,5,6,7].map(E.intNeed),[5,5,5,10,20,30,40,50]);
+assert.deepStrictEqual([0,1,2,3,4,5,6,7].map(E.intNeed),[20,30,40,50,60,70,80,90]);
 
 // BOT: só em instância vencida, gasta VIT e chance da Elite, paga conforme a melhor nota
 sv=E.newSave(); now=new Date(2026,9,6,12).getTime(); sv.vit.cur=120;
