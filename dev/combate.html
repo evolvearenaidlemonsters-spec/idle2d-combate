@@ -1357,6 +1357,17 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 .compact .sk .adv{top:-16px}
 @keyframes advB{from{margin-top:0}to{margin-top:-4px}}
 #hint{bottom:132px!important}
+/* BOSS Global: cabe na tela (rolagem interna) e sempre tem o X para sair */
+#rpop .pp{max-height:calc(100% - 16px);overflow:auto}
+#rpop .pp.bgpop{width:min(860px,96%);max-width:none;padding:12px 16px 10px!important}
+#rpop .pp.bgpop h2{margin:0 0 4px;font-size:24px}
+#rpop .pp.bgpop .bgX{position:sticky;float:right;top:0;margin:-4px -6px 0 0;z-index:5;width:42px!important;height:42px!important;font-size:22px!important}
+.bgpop .bgd img{width:46px;height:46px;object-fit:contain}.bgpop .bgd{padding:2px}
+.bgpop .bgmain{display:grid;grid-template-columns:220px 1fr;gap:12px;align-items:start;text-align:left;margin-top:6px}
+.bgpop .bgboss img{width:100%;max-height:220px;object-fit:contain}
+.bgpop .bginfo p{margin:2px 0}.bgpop .bgrk div{padding:1px 6px}
+.bgpop .go{position:sticky;bottom:-10px;background:linear-gradient(transparent,#0e1a30 40%);padding-top:8px}
+@media (max-height:600px){ .bgpop .bgboss img{max-height:170px} }
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -4679,6 +4690,7 @@ function openBGlobal(){ const now = Date.now(), M = bgBossOf(now), st = bgSetup(
         <div class="bgrk">${L.slice(0,8).map((x,i)=>`<div class="${x.me?'me':''}"><em>${i+1}</em><span>${x.name}</span><b>${x.dmg.toLocaleString('pt-BR')}</b></div>`).join('')}${me>8?`<div class="me"><em>${me}</em><span>${L[me-1].name}</span><b>${S.dmg.toLocaleString('pt-BR')}</b></div>`:''}</div></div></div></div>`;
   popSeq([{rib:'Provação', title:'BOSS Global', btn:'Lutar', html, after:(P,b)=>{
     P.querySelector('.go').insertAdjacentHTML('afterbegin','<button class="big alt" id="bgTeam" style="margin-right:10px">Time</button><button class="big alt" id="bgNo" style="margin-right:10px">Fechar</button>');
+    const pp = P.querySelector('.pp'); pp.classList.add('bgpop'); pp.insertAdjacentHTML('afterbegin','<button class="round small bgX" aria-label="Fechar">✕</button>'); pp.querySelector('.bgX').onclick = ()=>{ $('rpop').hidden = true; };
     $('bgNo').onclick = ()=>{ $('rpop').hidden = true; };
     $('bgTeam').onclick = ()=>{ $('rpop').hidden = true; team = save.team.filter(sp=>save.owned[sp]); buildCards(); $('sel').hidden = false; };
     b.disabled = !open || left<=0; b.onclick = ()=>{ bgSetup(Date.now(), save.trainer.lv); const why = tryEnter(save, 'bglobal', Date.now());
