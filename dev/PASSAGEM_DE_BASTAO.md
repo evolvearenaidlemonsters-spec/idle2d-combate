@@ -411,3 +411,11 @@ A Beatriz pediu: **toda atualização nova vai para o link dos amigos**. Depois 
 - Personagens: char/ = pixel (cidade), charo/ = arte original (resto). drawSprite escolhe por PX_SCENE.
 - Montarias: px/m_<k>.webp (pixel na cidade); tela de Montarias continua pintada.
 - Recompensas: medalha da Arena com ícone de verdade; "Diamantes" e retrato da criatura nova no popup da 1ª vitória; título longo do resultado menor.
+
+## v10.2
+- NPCs que andavam na cidade (WANDER) não são mais desenhados (o chat do mundo continua).
+- HUD da cidade: diamante, ouro e VIT sem o "+".
+- Treinador montado: imagem única por montaria (char/rd{M,F}_{cabrito,lagarto,grifo,lobo}.png, Gemini), só na cidade.
+- Caminhada: quadros reais (char/wk{M,F}_{s,f,b}{0-3}.png) — lado, frente e costas; fantasias G/S usam o balanço antigo.
+- Rivais tr_0..5 refeitos sem prancha/rede/mochila cortadas.
+- Cidade com profundidade: drawLit (sombra projetada pelo sol, escurece na sombra do cenário via mapa de luz, luz quente), cityDof (desfoque leve em cima/embaixo), cityPost (sombras de nuvens, névoa ao longe, vinheta). Tudo desligado em Gráficos baixos.
