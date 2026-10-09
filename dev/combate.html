@@ -3261,16 +3261,19 @@ function drawBg(){
 function shade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=n>>8&255,b=n&255; const m=v=>Math.max(0,Math.min(255,Math.round(f>0?v+(255-v)*f:v*(1+f)))); return `rgb(${m(r)},${m(g)},${m(b)})`; }
 // ===== Monstros (arte final): mon/<nº da Pokédex>.png. Quem ainda não tem arte usa a forma provisória =====
 let MONIMG = {};
+// Monstros já convertidos para pixel art (px/<nº>.png, feitos por tools/pixelar.py): desenhados sem suavizar
+const PIXEL = new Set(['20132','20521','20522','20523','20524','20851','20852']);
+const pxSrc = k => `px/${k}.png?v=${typeof ASSET_V!=='undefined'?ASSET_V:'1'}`;
 let artTimer = 0; // quando uma arte termina de carregar, redesenha as telas abertas que mostram monstros
 function refreshArt(){ clearTimeout(artTimer); artTimer = setTimeout(()=>{ bg = null;
   for(const [id,f] of [['mon',()=>renderMon()],['dex',()=>{ renderDexGrid(); renderDexDet(); }],['sel',()=>buildCards()],['starter',()=>pickStarter()],['dep',()=>renderDep()],['mnt',()=>renderMnt()],['map',()=>drawMap()],['city',()=>renderCityHud()],['prof',()=>renderProf()]]) if(!$(id).hidden) f(); }, 60); }
 // arte empacotada em art/pack_N.js (tools/pack_art.py): cada pacote chama ART({id: dataURL})
-window.ART = d => { for(const k in d){ const im = MONIMG[k] = new Image(); im.onload = refreshArt; im.src = d[k]; } };
+window.ART = d => { for(const k in d){ const im = MONIMG[k] = new Image(); im.onload = refreshArt; im.src = PIXEL.has(k) ? pxSrc(k) : d[k]; } };
 const ART_LAZY = IS_PUBLIC || /[?&]lazy/.test(location.search); // site: cada imagem baixa só quando aparece (cache do navegador)
 if(ART_LAZY){
   const want = new Set(), raw = MONIMG;
   window.ARTKEYS = ks => { for(const k of ks) want.add(k); window.__artKeys = ks; refreshArt(); };
-  MONIMG = new Proxy(raw, {get(t, k){ if(typeof k !== 'string') return t[k]; if(!t[k] && want.has(k)){ const im = t[k] = new Image(); im.decoding = 'async'; im.onload = refreshArt; im.src = `art/i/${k.replace(':','_')}.webp`; } return t[k]; }});
+  MONIMG = new Proxy(raw, {get(t, k){ if(typeof k !== 'string') return t[k]; if(!t[k] && want.has(k)){ const im = t[k] = new Image(); im.decoding = 'async'; im.onload = refreshArt; im.src = PIXEL.has(k) ? pxSrc(k) : `art/i/${k.replace(':','_')}.webp`; } return t[k]; }});
   const sc = document.createElement('script'); sc.src = 'art/i/keys.js'; document.head.append(sc);
 } else {
 window.__packs = 0; for(let i=0;i<10;i++){ const sc = document.createElement('script'); sc.onload = sc.onerror = ()=>window.__packs++; sc.src = `art/pack_${i}.js`; document.head.append(sc); }
@@ -3308,12 +3311,14 @@ function tintOf(im, kind){ let m = TINT.get(im); if(!m){ m = {}; TINT.set(im, m)
   const c = document.createElement('canvas'), s = Math.min(1, 256/Math.max(im.naturalWidth, im.naturalHeight)); c.width = Math.max(1, Math.round(im.naturalWidth*s)); c.height = Math.max(1, Math.round(im.naturalHeight*s)); const t = c.getContext('2d');
   t.drawImage(im, 0, 0, c.width, c.height); t.globalCompositeOperation = 'source-atop'; t.fillStyle = kind==='w' ? '#ffffff' : '#141020'; t.fillRect(0, 0, c.width, c.height); return m[kind] = c; }
 function drawCreature(g, sp, x, y, sc, face, opt={}){
-  const A = artOf(sp, opt.form), bk = opt.back && A && monImg('k:'+A.id), im = bk || (A && monImg(A.id)); if(bk) face = 1; // pose de costas (k:<nº>) para o lado do jogador
+  const A = artOf(sp, opt.form), px = A && PIXEL.has(String(A.id)), bk = opt.back && A && !px && monImg('k:'+A.id), im = bk || (A && monImg(A.id)); if(bk) face = 1; // pose de costas (k:<nº>) para o lado do jogador
   if(im){ let h = 74*sc*(1+0.14*(Math.min(A.st,4)-1))*(opt.form && SPECIES[sp].playable ? 1+0.08*opt.form : 1), w = im.naturalWidth*h/im.naturalHeight;
     if(opt.box){ const f = Math.min(1, opt.box[0]/w, opt.box[1]/h); w*=f; h*=f; }
     g.save(); g.translate(x,y); g.globalAlpha = opt.alpha ?? 1;
     if(!opt.noShadow){ g.fillStyle='#0004'; g.beginPath(); g.ellipse(0,3*sc,w*.36,8*sc,0,0,7); g.fill(); }
     g.translate(0,(opt.bob||0)+4*sc); if(face<0) g.scale(-1,1);
+    if(opt.walk){ const st = Math.floor(opt.walk/140)%2; g.translate(0, st ? -3*sc : 0); g.scale(st ? .96 : 1.04, st ? 1.05 : .95); } // passinho: alterna 2 quadros (pulo e pouso)
+    if(px) g.imageSmoothingEnabled = false;
     g.drawImage(im,-w/2,-h,w,h);
     if(im.complete && im.naturalWidth){ if(opt.flash){ g.globalAlpha = (opt.alpha ?? 1)*.55; g.drawImage(tintOf(im,'w'),-w/2,-h,w,h); } else if(opt.dark){ g.globalAlpha = (opt.alpha ?? 1)*Math.min(.85, opt.dark*.85); g.drawImage(tintOf(im,'d'),-w/2,-h,w,h); } }
     g.restore(); return; }
@@ -3357,7 +3362,7 @@ for(const k of Object.keys(LIB_KIND)) for(let t=1;t<=4;t++) ICON_FILE[libKey(k,t
 const ico = (k, cls='') => ICON_FILE[k] ? `<img class="ico ${cls}" src="ui/${ICON_FILE[k]}.png" alt="">` : `<i class="dot" style="background:${(ITEMS[k]||{}).color||'#ffc23d'}"></i>`;
 // ===== Personagens (arte final): sprites recortados em char/. Sem a imagem, cai no desenho provisório =====
 const CHAR = {};
-const ASSET_V = '89'; // muda quando as imagens dos personagens/cidade mudarem (o navegador guarda as antigas)
+const ASSET_V = '90'; // muda quando as imagens dos personagens/cidade mudarem (o navegador guarda as antigas)
 for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`), 'rideM','rideF','rideS']){
   const im = new Image(); im.onload = ()=>{ bg = null; if(typeof cityBg!=='undefined') cityBg = null; if(!$('starter').hidden) pickStarter(); }; im.src = `char/${k}.png?v=${ASSET_V}`; CHAR[k] = im; }
 const heroKey = view => `hero${(save && save.costume) || (save && save.hero) || 'M'}_${view}`; // 0 frente · 1 três-quartos · 2 lado (andando) · 3 costas · 4 costas arremessando · 5 costas comemorando
@@ -4662,10 +4667,10 @@ function renderCity(ts){
       g.fillStyle = '#ffd25a'; g.fillText(t1, a.x, yy-20); g.fillStyle = r.me ? '#7fe0ff' : '#fff'; g.fillText(t2, a.x, yy); }); });
   const who = (x,y,f) => items.push({y, d:()=>{ softShadow(g, x, y, 30*PK(y)); f(); }});
   for(const w of WANDER){ who(w.x, w.y, ()=>{ CS(g,w.x,w.y,()=>drawTrainer(g,w.x,w.y,{shirt:w.shirt,cap:w.cap,hair:w.hair,face:w.face,dir:w.dir,walk:w.walk||0,step:w.walk?Math.sin(w.walk/90)*6:0, sprite:`tr_${WANDER.indexOf(w)%6}`, noShadow:true})); late.push(()=>{ label(g,w.x,w.y-104*PK(w.y),w.name,w.real?'#ffd25a':'#bff4ff'); if(w.sayT>0) bubble(g, w.x, w.y-122*PK(w.y), w.say); }); });
-    who(w.px, w.py, ()=>{ CS(g,w.px,w.py,()=>drawCreature(g,w.sp,w.px,w.py,.72,w.face,{form:w.form, noShadow:true})); }); }
+    who(w.px, w.py, ()=>{ CS(g,w.px,w.py,()=>drawCreature(g,w.sp,w.px,w.py,.72,w.face,{form:w.form, walk:w.walk||0, noShadow:true})); }); }
   const sp0 = save.team[0], o0 = save.owned[sp0];
   who(me.x, me.y, ()=>{ CS(g,me.x,me.y,()=>drawRider(g,me.x,me.y,{face:me.face, dir:me.dir, walk:me.walk||0, step:me.walk?Math.sin(me.walk/90)*6:0, mount:save.mount&&save.mount.cur})); late.push(()=>label(g,me.x,me.y-110*PK(me.y),'Você','#7fe0ff')); });
-  who(pet.x, pet.y, ()=>{ CS(g,pet.x,pet.y,()=>drawCreature(g,sp0,pet.x,pet.y,.8,me.face,{form:o0.form, bob:Math.sin(ts/200)*2, noShadow:true})); late.push(()=>label(g,pet.x,pet.y-62*PK(pet.y),unitOf(sp0).name,'#7dff6a')); });
+  who(pet.x, pet.y, ()=>{ CS(g,pet.x,pet.y,()=>drawCreature(g,sp0,pet.x,pet.y,.8,me.face,{form:o0.form, bob:me.walk?0:Math.sin(ts/200)*2, walk:me.walk||0, noShadow:true})); late.push(()=>label(g,pet.x,pet.y-62*PK(pet.y),unitOf(sp0).name,'#7dff6a')); });
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
   late.forEach(f=>f());
   // placas dos lugares
