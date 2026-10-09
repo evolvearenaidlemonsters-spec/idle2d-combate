@@ -1347,6 +1347,7 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #cIcons{margin-top:14px!important;position:relative;z-index:2}
 #city .cbtn .fnew{top:-12px!important;font-size:10px!important;line-height:12px!important}
 .tlist{padding-bottom:10px}
+#load.boot{cursor:default;z-index:60}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -2963,13 +2964,37 @@ window.ART = d => { for(const k in d){ const im = MONIMG[k] = new Image(); im.on
 const ART_LAZY = IS_PUBLIC || /[?&]lazy/.test(location.search); // site: cada imagem baixa só quando aparece (cache do navegador)
 if(ART_LAZY){
   const want = new Set(), raw = MONIMG;
-  window.ARTKEYS = ks => { for(const k of ks) want.add(k); refreshArt(); };
+  window.ARTKEYS = ks => { for(const k of ks) want.add(k); window.__artKeys = ks; refreshArt(); };
   MONIMG = new Proxy(raw, {get(t, k){ if(typeof k !== 'string') return t[k]; if(!t[k] && want.has(k)){ const im = t[k] = new Image(); im.decoding = 'async'; im.onload = refreshArt; im.src = `art/i/${k.replace(':','_')}.webp`; } return t[k]; }});
   const sc = document.createElement('script'); sc.src = 'art/i/keys.js'; document.head.append(sc);
 } else {
-for(let i=0;i<10;i++){ const sc = document.createElement('script'); sc.src = `art/pack_${i}.js`; document.head.append(sc); }
-{ const sc = document.createElement('script'); sc.src = 'art/pack_mega.js'; document.head.append(sc); } // formas Mega (arte nova)
+window.__packs = 0; for(let i=0;i<10;i++){ const sc = document.createElement('script'); sc.onload = sc.onerror = ()=>window.__packs++; sc.src = `art/pack_${i}.js`; document.head.append(sc); }
+{ const sc = document.createElement('script'); sc.onload = sc.onerror = ()=>window.__packs++; sc.src = 'art/pack_mega.js'; document.head.append(sc); } // formas Mega (arte nova)
 }
+// ===== Tela de carregamento inicial (0–100%): baixa todas as artes dos monstros antes de mostrar o jogo =====
+function bootLoad(){
+  const L = $('load'); if(!L) return; L.classList.add('boot'); L.hidden = false; loading = true;
+  $('loadT').textContent = 'Idle 2D Combate'; $('loadS').textContent = 'Preparando os monstros…'; $('loadSk').innerHTML = '';
+  try{ $('loadTip').innerHTML = '💡 ' + TIPS[Math.floor(Math.random()*TIPS.length)]; }catch(e){}
+  try{ L.querySelector('.lbg').style.backgroundImage = `url(${BG_IMGS.templo.src})`; }catch(e){}
+  const cover = MEGA_LIST.length ? MEGA_LIST[Math.floor(Math.random()*MEGA_LIST.length)] : null; let coverOk = false;
+  const bar = $('loadBar'), pct = $('loadPct'); bar.style.transition = 'width .25s'; bar.style.width = '0';
+  const core = []; for(const o of [BG_IMGS, typeof ISL!=='undefined'?ISL:{}, typeof LM!=='undefined'?LM:{}, typeof DC!=='undefined'?DC:{}, typeof CITYIMG!=='undefined'?CITYIMG:{}, CHAR]) for(const k in o) if(o[k] instanceof Image) core.push(o[k]);
+  const done = im => im.complete; const ids = new Set(DEX.map(e=>String(e.id))); let mons = null, t0 = performance.now(), fin = false;
+  const wantKey = k => ids.has(k) || (k.startsWith('k:') && ids.has(k.slice(2))) || k.startsWith('b:') || k.startsWith('m:');
+  const tick = ()=>{ if(fin) return;
+    if(cover && !coverOk){ const im = MONIMG[String(cover.id)]; if(im && im.complete && im.naturalWidth){ coverOk = true; L.querySelector('.lart').innerHTML = `<img alt="" src="${im.src}">`; $('loadS').textContent = `Na capa: ${DEXBY[cover.id].nm}`; } }
+    let a = core.filter(done).length, n = core.length;
+    if(ART_LAZY){ if(!mons && window.__artKeys){ mons = window.__artKeys.filter(wantKey).map(k=>MONIMG[k]).filter(Boolean); } if(mons){ a += mons.filter(done).length; n += mons.length; } else n += 600; }
+    else { a += (window.__packs||0)*40; n += 11*40; }
+    const p = Math.min(100, Math.floor(100*a/Math.max(1,n))); bar.style.width = p+'%'; pct.textContent = p+'%';
+    const slow = performance.now()-t0 > 45000; if(slow && !L.onclick){ $('loadS').textContent = 'Internet lenta: toque para entrar mesmo assim'; L.onclick = end; }
+    if(p>=100) return setTimeout(end, 350); setTimeout(tick, 120); };
+  const end = ()=>{ if(fin) return; fin = true; L.hidden = true; L.classList.remove('boot'); L.onclick = null; loading = false; refreshArt(); };
+  tick();
+}
+setTimeout(bootLoad, 0);
+
 function monImg(id){ const im = MONIMG[id]; return im && im.complete && im.naturalWidth ? im : null; }
 function artOf(sp, form){ const s = SPECIES[sp]; if(s && s.mega) return {id:String(s.mega), st:4}; if(s && s.boss && MONIMG['b:'+sp]) return {id:'b:'+sp, st:1.2}; if(!s || !s.dex) return null; const id = s.playable && form ? FORMS[sp][form-1].dex : s.dex; const e = DEXBY[id]; return {id, st: s.playable ? (form||0)+1 : e.st}; }
 // versões pré-pintadas (branca e escura) de cada sprite: evita ctx.filter a cada quadro, que trava o navegador
