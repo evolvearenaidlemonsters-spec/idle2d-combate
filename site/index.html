@@ -1,4 +1,4 @@
-<title>Idle 2D Combate</title>
+<title>Evolve Arena: Idle Monsters</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Lilita+One&display=swap">
 <style>
@@ -1415,7 +1415,7 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #city #cLeft{left:10px!important;top:214px!important;gap:12px!important}
 #city #cLeft .cbtn i,#city #cLeft .cbtn i img{width:50px!important;height:46px!important}
 /* direita: Provação e Aventura */
-#city #cRight{right:8px!important;top:56px!important}
+#city #cRight{right:6px!important;top:2px!important}
 /* missão: quadro de madeira */
 #city #cMission{right:8px!important;top:158px!important;width:262px!important;padding:24px 8px 10px!important;border-radius:6px!important;pointer-events:auto;
   background:linear-gradient(var(--wd1),var(--wd2))!important;border:3px solid var(--wd3)!important;box-shadow:inset 0 0 0 2px #c8884a,inset 0 0 0 5px var(--wd2),0 4px 12px #000a!important}
@@ -1565,6 +1565,69 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 .sk.full{animation:skHop 1.2s ease-in-out infinite}
 @keyframes skHop{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 .reduceMotion #combo.burst .bar,.reduceMotion #combo.burst .hexn,.reduceMotion .sk.full,.reduceMotion .sk.full::before,.reduceMotion .sk.full .hex .shine{animation:none!important}
+
+/* ===================== Tema "Aço" v15 (referência: painel da Instância da Beatriz) — vale para todas as telas =====================
+   Painel: azul-marinho com hexágonos, moldura de aço azul e cantoneiras douradas. Título: placa trapezoidal de aço com asas.
+   Abas/itens: placas azuis biseladas; selecionado com brilho ciano; trancado em aço escuro. Botões secundários em aço; principal dourado. */
+#wrap{--aco-corner:linear-gradient(90deg,#fff0b0,#d8a23a) top left/30px 5px no-repeat,linear-gradient(#fff0b0,#d8a23a) top left/5px 30px no-repeat,
+  linear-gradient(270deg,#fff0b0,#d8a23a) top right/30px 5px no-repeat,linear-gradient(#fff0b0,#d8a23a) top right/5px 30px no-repeat,
+  linear-gradient(90deg,#fff0b0,#d8a23a) bottom left/30px 5px no-repeat,linear-gradient(0deg,#fff0b0,#d8a23a) bottom left/5px 30px no-repeat,
+  linear-gradient(270deg,#fff0b0,#d8a23a) bottom right/30px 5px no-repeat,linear-gradient(0deg,#fff0b0,#d8a23a) bottom right/5px 30px no-repeat;
+  --aco-body:radial-gradient(ellipse at 50% 0%,#1d4f86 0%,#123a6a 45%,#0b2550 100%);
+  --aco-frame:inset 0 0 0 2px #081a36,inset 0 0 0 4px #3f7cc0,inset 0 0 0 5px #9fd8ff66,inset 0 0 26px #3fa8ff22,0 6px 18px #000b;
+  --aco-steel:linear-gradient(#f2f6fa 0%,#b9c6d2 40%,#7b8c9c 60%,#c5d0da 100%);
+  --aco-plate:linear-gradient(#2a68a8,#123e74 55%,#0c2c58)}
+/* painéis */
+#rpList,#rpDet,#shopGrid,#bagGrid,#bagInfo,#dexDet,#profPanel,#mntPanel,#rankPanel,#explRight,#fragDet,#achList,#wrap .ainfo,#wrap .ov > .box{
+  background:var(--aco-corner),var(--tk-hex),var(--aco-body)!important;border:0!important;border-radius:10px!important;clip-path:none!important;box-shadow:var(--aco-frame)!important}
+/* títulos das telas: placa de aço com asas */
+#rpTitle,#wrap .scrTitle,#shopTitle,#dexTitle,#depTitle,#capTitle{position:relative;display:inline-block;padding:5px 48px 8px!important;font:400 24px 'Lilita One',var(--font)!important;color:#e8fbff!important;letter-spacing:.5px;
+  background:var(--aco-plate)!important;border:0!important;border-radius:0!important;clip-path:polygon(0 0,100% 0,calc(100% - 26px) 100%,26px 100%);
+  box-shadow:inset 0 0 0 3px #c8d6e2,inset 0 0 0 5px #3a5068,inset 0 -8px 14px #3fd8ff55!important;text-shadow:0 0 10px #4fd8ff,0 2px 0 #062040!important}
+#rpTitle{align-self:center;margin:-14px 0 0!important}
+/* nome da região: placa de aço clara com pontas */
+#rpList h3{font:400 20px 'Lilita One',var(--font)!important;color:#ffe9a8!important;background:var(--aco-steel)!important;border:0!important;border-radius:0!important;padding:7px 16px!important;white-space:nowrap;
+  clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,14px 100%,0 50%);text-shadow:0 0 2px #2a1a00,0 2px 0 #3a2200,1px 1px 0 #3a2200,-1px -1px 0 #3a2200,1px -1px 0 #3a2200,-1px 1px 0 #3a2200!important}
+#rpStars{white-space:nowrap;font:400 24px 'Lilita One',var(--font)!important;color:#ffd84a!important;text-shadow:0 2px 0 #4a2a00}
+#rpStars button{white-space:nowrap;font:400 16px 'Lilita One',var(--font)!important;padding:4px 8px 4px 14px!important;border:0!important;border-radius:8px!important;background:var(--aco-plate)!important;color:#fff!important;
+  box-shadow:inset 0 0 0 2px #c8d6e2,inset 0 0 0 4px #2a4058,0 3px 0 #061630!important;text-shadow:0 2px 0 #062040}
+#rpStars button img{width:30px!important;height:30px!important}
+/* instâncias: placas azuis biseladas */
+#wrap .inst{clip-path:polygon(10px 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,10px 100%,0 calc(100% - 10px),0 10px)!important;border:0!important;border-radius:0!important;padding:8px 24px 8px 16px!important;white-space:nowrap;
+  font:400 19px 'Lilita One',var(--font)!important;color:#fff!important;text-shadow:0 2px 0 #06244a,0 0 3px #06244a!important;background:var(--tk-hex),linear-gradient(#4aa0ee,#1e68c0 55%,#0f4690)!important;
+  box-shadow:inset 0 0 0 2px #cfe8ff,inset 0 0 0 4px #1a4a8a,inset 0 3px 0 4px #ffffff30!important}
+#wrap .inst.sel{background:var(--tk-hex),linear-gradient(#5ac0ff,#2486e0 55%,#1258b0)!important;box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 4px #39e0ff,inset 0 0 18px #7ff4ff,0 0 16px #39d7ff!important;filter:none}
+#wrap .inst.lock{background:linear-gradient(#3a4656,#252f3c 60%,#1b232e)!important;color:#8f9cac!important;text-shadow:0 2px 0 #0a0e14!important;box-shadow:inset 0 0 0 2px #6a7888,inset 0 0 0 4px #1a222c!important}
+#wrap .inst .st{font-size:20px;gap:2px}#wrap .inst .st svg{width:21px!important;height:21px!important;filter:drop-shadow(0 2px 0 #0006)}
+/* linhas de informação */
+#rpRec{font:400 15px 'Lilita One',var(--font)!important;background:#081a36e6!important;border:0!important;border-radius:8px!important;box-shadow:inset 0 0 0 2px #3f7cc0!important;padding:6px 14px!important}
+#wrap .rprow{white-space:nowrap;font:400 16px 'Lilita One',var(--font)!important;color:#bcd8f4!important}
+#wrap .rprow b{font:400 17px 'Lilita One',var(--font)!important;min-width:90px;background:linear-gradient(#0a2046,#06142e)!important;border:0!important;border-radius:9px!important;box-shadow:inset 0 0 0 2px #3f7cc0,inset 0 2px 4px #000a!important;padding:4px 16px!important}
+#wrap .rprow b.good{color:#7dff6a!important}#wrap .rprow b:not(.good):not(.bad){color:#fff!important}
+#wrap .rplabel{font:400 16px 'Lilita One',var(--font)!important;color:#bcd8f4!important;margin-top:2px}
+#rpFoes,#rpDrops{background:#081a36cc!important;border:0!important;border-radius:10px!important;box-shadow:inset 0 0 0 2px #3f7cc0!important;padding:8px 12px!important;gap:16px!important}
+#wrap .foe{width:80px!important;font:400 15px 'Lilita One',var(--font)!important}
+#wrap .foe canvas{width:64px!important;height:64px!important;border:0!important;border-radius:14px!important;background:radial-gradient(circle at 50% 35%,#3a6aa0,#16304e 75%)!important;box-shadow:inset 0 0 0 3px #c8d6e2,inset 0 0 0 5px #3a5068,0 3px 6px #000a!important}
+#wrap .foe .l{top:44px!important;left:0!important;font:400 18px 'Lilita One',var(--font)!important}
+#wrap .foe .chip{top:46px!important;right:6px!important;border-radius:8px!important;border:2px solid #c8d6e2!important}
+#wrap .foe .tg{font-size:16px!important;padding:2px 8px!important;top:-8px!important;right:-6px!important}
+#rpDrops .tile{width:84px!important;font:400 14px 'Lilita One',var(--font)!important;line-height:1.05}
+#rpDrops .tile .ic{width:56px!important;height:56px!important;border:0!important;border-radius:12px!important;background:radial-gradient(circle at 50% 35%,#4a2a10,#1c1006 80%)!important;box-shadow:inset 0 0 0 3px #ffd27a,inset 0 0 0 5px #8a5a14,0 3px 6px #000a!important}
+#rpDrops .tile .q{font:400 15px 'Lilita One',var(--font)!important;color:#fff;text-shadow:0 0 3px #000,0 2px 0 #000}
+/* botões: secundários em aço, principal dourado */
+#wrap .big.alt,#rpDet .big.alt.sm{font:400 17px 'Lilita One',var(--font)!important;color:#fff!important;border:0!important;border-radius:0!important;padding:6px 18px!important;
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);background:linear-gradient(#a8b6c4,#6c7c8c 50%,#4a5868)!important;
+  box-shadow:inset 0 0 0 2px #e6eef4,inset 0 0 0 4px #3a4858,inset 0 -4px 0 #2a3644!important;text-shadow:0 2px 0 #1a2430!important}
+#rpTeam{background:var(--aco-plate)!important;box-shadow:inset 0 0 0 2px #e6eef4,inset 0 0 0 4px #1a4a8a!important}
+#rpEnter,#wrap .big:not(.alt){clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+#rpEnter{font-size:24px!important;padding:5px 38px!important}
+/* fechar: botão redondo de aço */
+#rpClose,#wrap .scrBack,#wrap [id$="Back"]:not(.big):not(#monBack){width:58px!important;height:58px!important;border:0!important;border-radius:50%!important;clip-path:none!important;padding:0!important;
+  background:radial-gradient(circle at 45% 35%,#3a5a7a,#142438 70%)!important;box-shadow:inset 0 0 0 3px #e6eef4,inset 0 0 0 6px #6a7c8e,inset 0 0 0 8px #1a2a3c,0 4px 10px #000b!important;
+  color:#fff!important;font:400 30px 'Lilita One',var(--font)!important;text-shadow:0 2px 0 #000!important;display:grid;place-items:center}
+#rpClose{right:-22px!important;top:-22px!important}
+/* abas de cima das telas (Loja, Bolsa, Ranking...): mesmo estilo das instâncias */
+#shopTabs button,#bagTabs button,#rankTabs button,#achTabs button,#explTabs button,#profTabs button{font:400 17px 'Lilita One',var(--font)!important}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -1673,7 +1736,7 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
     </div>
     <button id="cMount" data-go="mnt" aria-label="Montaria"><canvas width="120" height="120"></canvas><span>Montaria</span></button>
     <div id="cLeft"><button class="cbtn" data-go="cap"><i><img src="ui/cap_1.png" alt=""></i>Cápsulas</button><button class="cbtn" data-go="bag"><i><img src="ui/n_3.png" alt=""></i>Bolsa</button><button class="cbtn" data-go="shop"><i><img src="ui/n_2.png" alt=""></i>Loja</button></div>
-    <div id="cRight"><button class="cbtn lg" data-go="prov" id="cbProv"><i><img src="ui/n_5.png" alt=""></i>Provação</button><button class="cbtn lg" data-go="map"><i><img src="ui/n_6.png" alt=""></i>Aventura</button></div>
+    <div id="cRight"><button class="cbtn lg" data-go="prov" id="cbProv"><i><img src="ui/n_5.png" alt=""></i>Provação</button><button class="cbtn lg" data-go="map"><i><img src="ui/ic_aventura.png" alt=""></i>Aventura</button></div>
     <aside id="cMission"><h4 id="cMisT" role="button" tabindex="0">Missão</h4><div id="cMisList"></div></aside>
     <div id="cChat" aria-live="off"></div>
     <div id="cDock"><div id="cDockBar"><button class="cbtn" data-go="mon"><i><img src="ui/ic_mon.png" alt=""></i>Monstros</button><button class="cbtn" data-go="team"><i><img src="ui/ic_team.png" alt=""></i>Equipe</button><button class="cbtn" data-go="dex"><i><img src="ui/ic_dex.png" alt=""></i>Livro</button><button class="cbtn" data-go="frag" id="cbFrag"><i><img src="ui/n_10.png" alt=""></i>Fragmentos</button><button class="cbtn" data-go="guild"><i><img src="ui/i_moedaG.png" alt=""></i>Guilda</button></div>
@@ -3215,7 +3278,7 @@ window.__packs = 0; for(let i=0;i<10;i++){ const sc = document.createElement('sc
 // ===== Tela de carregamento inicial (0–100%): baixa todas as artes dos monstros antes de mostrar o jogo =====
 function bootLoad(){
   const L = $('load'); if(!L) return; L.classList.add('boot'); L.hidden = false; loading = true;
-  $('loadT').textContent = 'Idle 2D Combate'; $('loadS').textContent = 'Preparando os monstros…'; $('loadSk').innerHTML = '';
+  $('loadT').textContent = 'Evolve Arena: Idle Monsters'; $('loadS').textContent = 'Preparando os monstros…'; $('loadSk').innerHTML = '';
   try{ $('loadTip').innerHTML = '💡 ' + TIPS[Math.floor(Math.random()*TIPS.length)]; }catch(e){}
   try{ L.querySelector('.lbg').style.backgroundImage = `url(${BG_IMGS.templo.src})`; }catch(e){}
   const cover = MEGA_LIST.length ? MEGA_LIST[Math.floor(Math.random()*MEGA_LIST.length)] : null; let coverOk = false;
