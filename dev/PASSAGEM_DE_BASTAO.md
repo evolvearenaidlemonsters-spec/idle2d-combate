@@ -380,3 +380,12 @@ A Beatriz pediu: **toda atualização nova vai para o link dos amigos**. Depois 
 - Colisão: BLOCK_R (retângulos) + BLOCK_C (círculos). Caminho com A* (findPath, grade 20px) para contornar a praça.
 - Pontos: Loja, Cápsula, Centro de Monstros, Arena, Galeria dos Campeões (rank), Portão da Aventura (barraca vermelha). Nomes e placas desenhados por último.
 - CITYIMG ficou só com b_4 (usado no mapa-múndi).
+
+## 09/10 ~00h50 — v8.8 (link + artifact)
+- Câmera da cidade 25% mais longe (CZ .465).
+- city/cena.jpg agora sem as pessoas/bichos pintados (Gemini apagou; recolado só nas áreas mudadas, alinhado por ECC — script em /home/claude/gen/comp.py). Original guardado em /home/claude/gen/limpa/cena_orig.jpg.
+- Altares da praça: Top 1 Poder (cima), Livro (esquerda), Nível (direita), Arena (baixo) — ALTARS/drawAltar; tocar abre o Ranking na aba certa. Nova aba de ranking "Livro" (obtidas).
+- Novo visual pixel art (ref. da Beatriz): heroM_0..5, rideM, heroF_0..5, rideF, npc_0..4, tr_0..5, heroG_0..3 (G_4/G_5 = cópia do G_3; rideG removido → usa recorte do G_2).
+- FALTA: heroG poses 4/5/montaria e todo o traje S (Esqueleto) no estilo novo — o link com o navegador caiu no meio. Prompts em /home/claude/gen/pix/prompts.json (boyG2, boyS1, boyS2). Recorte: tools/cut_pix.py <folha> ids pasta 360 1 [drop].
+- Rivais (tr_*) foram recortados com cortes retos (se encostavam na folha); dá para refazer com espaço.
+- 09/10 00h38: família de fogo original (fogo3.png) CANCELADA pela Beatriz — não incluir.

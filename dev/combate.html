@@ -3171,8 +3171,9 @@ for(const k of Object.keys(LIB_KIND)) for(let t=1;t<=4;t++) ICON_FILE[libKey(k,t
 const ico = (k, cls='') => ICON_FILE[k] ? `<img class="ico ${cls}" src="ui/${ICON_FILE[k]}.png" alt="">` : `<i class="dot" style="background:${(ITEMS[k]||{}).color||'#ffc23d'}"></i>`;
 // ===== Personagens (arte final): sprites recortados em char/. Sem a imagem, cai no desenho provisório =====
 const CHAR = {};
+const ASSET_V = '88'; // muda quando as imagens dos personagens/cidade mudarem (o navegador guarda as antigas)
 for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`), 'rideM','rideF','rideS']){
-  const im = new Image(); im.onload = ()=>{ bg = null; if(typeof cityBg!=='undefined') cityBg = null; if(!$('starter').hidden) pickStarter(); }; im.src = `char/${k}.png`; CHAR[k] = im; }
+  const im = new Image(); im.onload = ()=>{ bg = null; if(typeof cityBg!=='undefined') cityBg = null; if(!$('starter').hidden) pickStarter(); }; im.src = `char/${k}.png?v=${ASSET_V}`; CHAR[k] = im; }
 const heroKey = view => `hero${(save && save.costume) || (save && save.hero) || 'M'}_${view}`; // 0 frente · 1 três-quartos · 2 lado (andando) · 3 costas · 4 costas arremessando · 5 costas comemorando
 const heroPose = view => { const k = heroKey(view), im = CHAR[k]; return im && im.complete && im.naturalWidth ? k : heroKey(3); };
 function drawSprite(g, key, x, y, h=124, flip=false, o={}){
@@ -4193,7 +4194,7 @@ let cam = {x:0, y:0}, cityBg = null, cityLast = 0, cityRaf = 0, nearB = null;
 // ===== Cidade pintada (city/cena.jpg) =====
 // Profundidade: cada recorte (OCC) é um pedaço da própria pintura (árvore, prédio, poste, pedestal) com a linha da base.
 // Quem estiver ATRÁS (pé acima da base) é coberto pelo recorte, como se o objeto fizesse parte do cenário.
-const CENA = new Image(); CENA.onload = ()=>{ cityBg = null; }; CENA.src = 'city/cena.jpg';
+const CENA = new Image(); CENA.onload = ()=>{ cityBg = null; }; CENA.src = 'city/cena.jpg?v='+ASSET_V;
 const okImg = im => im && im.complete && im.naturalWidth;
 const CITYIMG = {}; for(const k of ['b_4']){ const im = new Image(); im.src = `city/${k}.png`; CITYIMG[k] = im; } // usado no mapa-múndi
 function drawProp(g, key, x, y, h, shadow=.3){ const im = CITYIMG[key]; if(!okImg(im)) return false; const w = im.naturalWidth*h/im.naturalHeight;
@@ -4574,7 +4575,7 @@ function renderCap(){
   capDecor();
   $('capCards').innerHTML = `<div class="capc"><h3>Cápsula Comum</h3><span class="cbeam">${imgOr('cap0','ui/m_1.png').replace('<img','<img class="cimg"')}</span><span class="free">${fl>0?'1 grátis agora!':`Grátis em ${Math.ceil(freeIn(save,now)/60e3)} min`}</span><details><summary>Chances ▾</summary>${list(CAPSULE.comum.table)}</details><div class="row"><button class="big" id="spinC">${fl>0?'Abrir ×1 · Grátis':`Abrir ×1 · ${CAPSULE.comum.gold/1000}k ouro`}</button><button class="big alt" id="spinC10">Abrir ×10 · ${CAPSULE.comum.gold*10/1000}k ouro</button></div></div>
     <div class="capc raro"><h3>Cápsula Rara</h3><span class="cbeam">${imgOr('cap1','ui/m_1.png').replace('<img','<img class="cimg"')}</span><span class="free">${fr?'1 grátis hoje!':'Grau A garantido em 10% dos giros'}</span><details><summary>Chances ▾</summary>${list(CAPSULE.raro.table)}</details><div class="row"><button class="big" id="spinR1">${fr?'Abrir ×1 · Grátis hoje':`Abrir ×1 · ${CAPSULE.raro.cost}💎`}</button><button class="big alt" id="spinR10">Abrir ×10 · ${CAPSULE.raro.cost10}💎</button></div></div>`;
-  if(!$('capProf')){ $('cap').insertAdjacentHTML('afterbegin', `<img id="capProf" alt="Professor" src="char/npc_1.png"><div id="capSay"></div>`); }
+  if(!$('capProf')){ $('cap').insertAdjacentHTML('afterbegin', `<img id="capProf" alt="Professor" src="char/npc_1.png?v=${ASSET_V}"><div id="capSay"></div>`); }
   $('capSay').textContent = fl>0 || fr ? 'Olá! Tem cápsula grátis esperando por você. Coloque na máquina e veja o que sai!' : 'A máquina está pronta. Cada cápsula pode guardar um monstro raro…';
   let busy = false;
   const spin = (kind,n) => { if(busy) return; const r = spinCapsule(save, kind, n, Date.now()); if(r.why) return toast(r.why==='ouro'?`Ouro insuficiente: cada giro custa ${CAPSULE.comum.gold} de ouro.`:'Diamantes insuficientes.'); persist(); busy = true;
@@ -4729,7 +4730,7 @@ function openExpl(room){ if(room) explRoom = room; $('expl').hidden = false; ren
 function renderExpl(){
   const R = EXPL_ROOMS.find(r=>r.id===explRoom), now = Date.now();
   $('explBg').style.backgroundImage = `url(bg/${R.theme}.jpg)`;
-  $('explChars').innerHTML = `<img class="xh" alt="" src="char/${heroKey(0)}.png"><img class="xn" alt="" src="char/npc_4.png">`;
+  $('explChars').innerHTML = `<img class="xh" alt="" src="char/${heroKey(0)}.png?v=${ASSET_V}"><img class="xn" alt="" src="char/npc_4.png?v=${ASSET_V}">`;
   $('explPow').textContent = teamPower();
   $('explTabs').innerHTML = EXPL_ROOMS.map(r=>`<button class="${r.id===explRoom?'on':''}" data-r="${r.id}">${r.name}</button>`).join('');
   $('explTabs').querySelectorAll('[data-r]').forEach(b=>b.onclick = ()=>{ explRoom = b.dataset.r; renderExpl(); });
