@@ -1705,7 +1705,7 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 
   <div class="ov" id="opt" hidden><div class="box optBox"><h2>Opções</h2><button class="round small scrBack" id="optBack" aria-label="Fechar">✕</button>
     <section><h3>Conta e nuvem</h3><div id="optCloud"></div></section>
-    <section><h3>Som</h3><div class="row"><button id="optSnd">Som: desligado</button><button id="optAnim">Animações: completas</button></div><p class="dim">Efeitos leves nas batalhas. Começa desligado.</p></section>
+    <section><h3>Som</h3><div class="row"><button id="optSnd">Som: desligado</button><button id="optAnim">Animações: completas</button><button id="optGfx">Gráficos: alta</button></div><p class="dim">Efeitos leves nas batalhas. Começa desligado.</p></section>
     <section><h3>Relatar problema</h3><textarea id="optRep" maxlength="1000" rows="3" placeholder="Conte o que aconteceu e em qual tela."></textarea><div class="row"><button class="big" id="optRepGo">Enviar</button></div></section>
   </div></div>
   <div class="ov" id="sum" hidden><div class="box"><h2 id="sumTitle"></h2><div id="sumBody"></div><div class="row"><button class="big" id="sumOk">OK</button></div></div></div>
@@ -4067,6 +4067,7 @@ function openProv(){ $('prov').hidden = false; const now = Date.now(), a = arena
   $('provCards').innerHTML = C.map(c=>`<button class="pcard${c.open?'':' soon'}" data-k="${c.k}" style="background-image:linear-gradient(#0000 35%,#06101cf0 78%),url(${c.img})"><b>${c.t}</b><span>${c.d}</span>${c.open?'<em>Entrar</em>':'<em class="lk">🔒 Em breve</em>'}</button>`).join('');
   $('provCards').querySelectorAll('.pcard').forEach(b=>b.onclick = ()=>{ if(b.dataset.k==='arena'){ $('prov').hidden = true; openArena(); } else if(b.dataset.k==='bglobal'){ if(save.trainer.lv < MEGA_TRAINER_LV) return toast(`Os Megas da Provação (BOSS Global) abrem no treinador Nv ${MEGA_TRAINER_LV}.`); if(!cleared(save,'caverna-5')) return toast('O BOSS Global abre ao vencer a Caverna Ecoante 5.'); openBGlobal(); } else if(b.dataset.k==='torre'){ if(!cleared(save,'caverna-5')) return toast('A Torre abre ao vencer a Caverna Ecoante 5.'); openTower(); } else if(b.dataset.k==='desafio'){ if(!cleared(save,'bosque-5')) return toast('O Desafio Semanal abre ao vencer o Bosque Sussurrante 5.'); openWeekly(); } else if(b.dataset.k==='expl'){ if(!cleared(save,'praia-5')) return toast('A Exploração abre ao vencer a Praia das Conchas 5.'); $('prov').hidden = true; openExpl(); } else toast('Em breve! Essa Provação chega numa próxima versão.'); }); }
 $('optBack').onclick = ()=>{ $('opt').hidden = true; };
+$('optGfx').onclick = ()=>{ GFX_LOW = !GFX_LOW; try{ localStorage.setItem('idle2d.gfx', GFX_LOW?'low':'high'); }catch(e){} cityBg = null; renderOpt(); toast(GFX_LOW ? 'Gráficos em qualidade baixa: o jogo fica mais leve.' : 'Gráficos em qualidade alta.'); };
 $('optAnim').onclick = ()=>{ reduce = !reduce; try{ localStorage.setItem('idle2d.reduce', reduce?'1':'0'); }catch(e){} document.documentElement.classList.toggle('reduceMotion', reduce); renderOpt(); toast(reduce ? 'Animações reduzidas: menos efeitos na luta.' : 'Animações completas ligadas.'); }; $('optRepGo').onclick = sendReport; $('optSnd').onclick = ()=>{ SOUND.on = !SOUND.on; try{ localStorage.setItem('idle2d.snd', SOUND.on?'1':'0'); }catch(e){} if(SOUND.on){ sndCtx(); sfx('pop'); } renderOpt(); };
 $('rankBack').onclick = ()=>{ $('rank').hidden = true; if(!$('city').hidden) renderCityHud(); };
 $('provBack').onclick = ()=>{ $('prov').hidden = true; if(!$('city').hidden) renderCityHud(); };
@@ -4549,9 +4550,28 @@ function occPath(g, s){ g.beginPath(); for(const sh of s){ const t = sh[0];
   else if(t==='c'){ g.moveTo(sh[1]+sh[3],sh[2]); g.arc(sh[1],sh[2],sh[3],0,7); }
   else if(t==='e'){ g.moveTo(sh[1]+sh[3],sh[2]); g.ellipse(sh[1],sh[2],sh[3],sh[4],0,0,7); }
   else g.rect(sh[1],sh[2],sh[3],sh[4]); } }
-function drawOcc(g, o){ if(!okImg(CENA)) return; g.save(); occPath(g, o.s); g.clip(); g.drawImage(CENA, 0, 0, CW, CH); g.restore(); }
+// ---- Desempenho: a pintura e os recortes são preparados UMA vez (na escala da tela) e depois só copiados ----
+// Antes, cada quadro redesenhava a imagem inteira ~40 vezes (uma por recorte) + filtro de luz em tela cheia: travava no Firefox.
+let GFX_LOW = (()=>{ try{ return localStorage.getItem('idle2d.gfx')==='low'; }catch(e){ return false; } })();
+const cityK = () => Math.min(GFX_LOW ? 1 : 2, K) * (GFX_LOW ? .7 : 1);   // resolução do canvas da cidade
+function occBox(o){ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; const add=(x,y)=>{ x0=Math.min(x0,x); y0=Math.min(y0,y); x1=Math.max(x1,x); y1=Math.max(y1,y); };
+  for(const sh of o.s){ const t=sh[0]; if(t==='p') for(let i=0;i<sh[1].length;i+=2) add(sh[1][i],sh[1][i+1]); else if(t==='c'){ add(sh[1]-sh[3],sh[2]-sh[3]); add(sh[1]+sh[3],sh[2]+sh[3]); } else if(t==='e'){ add(sh[1]-sh[3],sh[2]-sh[4]); add(sh[1]+sh[3],sh[2]+sh[4]); } else { add(sh[1],sh[2]); add(sh[1]+sh[3],sh[2]+sh[4]); } }
+  x0=Math.max(0,Math.floor(x0)); y0=Math.max(0,Math.floor(y0)); return {x:x0, y:y0, w:Math.min(CW,Math.ceil(x1))-x0, h:Math.min(CH,Math.ceil(y1))-y0}; }
+function bakeCity(){
+  if(!okImg(CENA)) return null; const S = cityK()*CZ, bw = Math.round(CW*S), bh = Math.round(CH*S);
+  const c = document.createElement('canvas'); c.width = bw; c.height = bh; const g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
+  g.drawImage(CENA, 0, 0, bw, bh);
+  // luz quente do fim de tarde (antes era aplicada por cima a cada quadro)
+  g.save(); g.scale(S,S); g.globalCompositeOperation = 'soft-light'; const lg = g.createLinearGradient(0,0,CW,CH); lg.addColorStop(0,'rgba(255,220,160,.22)'); lg.addColorStop(1,'rgba(60,40,120,.18)'); g.fillStyle = lg; g.fillRect(0,0,CW,CH); g.restore();
+  const occ = OCC.map(o=>{ const b = occBox(o); if(b.w<=0||b.h<=0) return null; const oc = document.createElement('canvas'); oc.width = Math.max(1,Math.round(b.w*S)); oc.height = Math.max(1,Math.round(b.h*S)); const og = oc.getContext('2d');
+    og.scale(S,S); og.translate(-b.x,-b.y); occPath(og, o.s); og.clip(); og.setTransform(1,0,0,1,0,0); og.drawImage(c, Math.round(b.x*S), Math.round(b.y*S), oc.width, oc.height, 0, 0, oc.width, oc.height); return {...b, c:oc}; });
+  return {c, S, occ}; }
+const SHADOW_SPR = (()=>{ const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const gr = g.createRadialGradient(64,64,1,64,64,64); gr.addColorStop(0,'rgba(20,16,30,.38)'); gr.addColorStop(.6,'rgba(20,16,30,.17)'); gr.addColorStop(1,'rgba(20,16,30,0)'); g.fillStyle = gr; g.fillRect(0,0,128,128); return c; })();
+const GLOW_SPR = (()=>{ const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); const gr = g.createRadialGradient(64,64,2,64,64,64); gr.addColorStop(0,'rgba(255,240,190,1)'); gr.addColorStop(1,'rgba(255,240,190,0)'); g.fillStyle = gr; g.fillRect(0,0,128,128); return c; })();
+function drawOcc(g, o, i){ const k = cityBg && cityBg.occ[i]; if(k) g.drawImage(k.c, k.x, k.y, k.w, k.h); }
 // sombra de contato: macia, puxada para baixo-direita (luz do cenário vem de cima-esquerda)
-function softShadow(g, x, y, w, a=.38){ const gr = g.createRadialGradient(x+4, y+2, 1, x+4, y+2, w); gr.addColorStop(0, `rgba(20,16,30,${a})`); gr.addColorStop(.6, `rgba(20,16,30,${a*.45})`); gr.addColorStop(1, 'rgba(20,16,30,0)');
+function softShadow(g, x, y, w, a=.38){ g.drawImage(SHADOW_SPR, x+4-w, y+2-w*.34, w*2, w*.68); }
+function softShadowOld(g, x, y, w, a=.38){ const gr = g.createRadialGradient(x+4, y+2, 1, x+4, y+2, w); gr.addColorStop(0, `rgba(20,16,30,${a})`); gr.addColorStop(.6, `rgba(20,16,30,${a*.45})`); gr.addColorStop(1, 'rgba(20,16,30,0)');
   g.save(); g.translate(x+4, y+2); g.scale(1, .34); g.translate(-(x+4), -(y+2)); g.fillStyle = gr; g.beginPath(); g.arc(x+4, y+2, w, 0, 7); g.fill(); g.restore(); }
 function drawCityGround(){ return {c:CENA}; }
 // Altares da praça: o Top 1 de cada ranking fica em cima de um pedestal (atualiza a cada 5 s)
@@ -4560,7 +4580,7 @@ let altarTop = null, altarT = 0;
 function altarRows(){ if(!altarTop || performance.now()-altarT > 5000){ altarT = performance.now(); try{ altarTop = ALTARS.map(a=>rankRows(a.tab)[0]); }catch(e){ altarTop = []; } } return altarTop; }
 function drawAltar(g, a, r, ts){ if(!r) return; const k = PK(a.y)*1.2, x = a.x, y = a.y;
   // luz dourada subindo do pedestal (destaque do campeão)
-  g.save(); g.globalCompositeOperation = 'lighter'; const gl = g.createRadialGradient(x, y-40, 6, x, y-40, 110); gl.addColorStop(0, `rgba(255,214,120,${.20+.06*Math.sin(ts/600+x)})`); gl.addColorStop(1, 'rgba(255,214,120,0)'); g.fillStyle = gl; g.fillRect(x-110, y-150, 220, 220); g.restore();
+  if(!GFX_LOW){ g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = .45+.12*Math.sin(ts/600+x); g.drawImage(GLOW_SPR, x-110, y-150, 220, 220); g.restore(); }
   softShadow(g, x+20, y, 46*k, .3);
   const f = r.team && r.team[0];
   const Z = (cx,cy,fn)=>{ g.save(); g.translate(cx,cy); g.scale(k,k); g.translate(-cx,-cy); fn(); g.restore(); };
@@ -4621,18 +4641,21 @@ function cityFrame(ts){
   // prédio perto: botão de ação
   const nb = BUILDINGS.find(b=>Math.hypot(me.x-b.npc.x, me.y-b.npc.y) < 120) || null;
   if(nb!==nearB){ nearB = nb; $('cAct').hidden = !nb; if(nb) $('cAct').textContent = nb.portal ? 'Ir para a Aventura' : `Entrar: ${nb.name}`; }
-  renderCity(ts);
+  if(!GFX_LOW || ts - (cityFrame.lr||0) >= 30){ cityFrame.lr = ts; renderCity(ts); }
   cityRaf = requestAnimationFrame(cityFrame);
 }
 function renderCity(ts){
-  const g = cctx; g.setTransform(1,0,0,1,0,0); g.fillStyle='#3a5a3a'; g.fillRect(0,0,ccv.width,ccv.height);
-  g.setTransform(K*CZ,0,0,K*CZ,-cam.x*K*CZ,-cam.y*K*CZ); g.imageSmoothingQuality = 'high';
-  if(okImg(CENA)) g.drawImage(CENA, 0, 0, CW, CH);
+  const g = cctx, KC = cityK(); if(ccv.width !== Math.round(W*KC)){ ccv.width = Math.round(W*KC); ccv.height = Math.round(H*KC); cityBg = null; }
+  if(!cityBg || cityBg.S !== KC*CZ) cityBg = bakeCity();
+  g.setTransform(1,0,0,1,0,0); g.fillStyle='#3a5a3a'; g.fillRect(0,0,ccv.width,ccv.height);
+  if(cityBg){ const S = cityBg.S; g.drawImage(cityBg.c, Math.round(cam.x*S), Math.round(cam.y*S), ccv.width, ccv.height, 0, 0, ccv.width, ccv.height); }
+  g.setTransform(KC*CZ,0,0,KC*CZ,-cam.x*KC*CZ,-cam.y*KC*CZ); g.imageSmoothingEnabled = true;
   // brilho suave da fonte e dos pedestais (vida no cenário)
+  if(!GFX_LOW){ const t = ts/900; g.save(); g.globalCompositeOperation = 'lighter'; for(const [x,y] of [[1210,520],[890,800],[1600,800],[1210,1040]]){ g.globalAlpha = .10 + .06*Math.sin(t + x); g.drawImage(GLOW_SPR, x-120, y-120, 240, 240); } g.restore(); }
   { const t = ts/900; g.save(); g.globalCompositeOperation = 'lighter'; for(const [x,y] of [[1210,520],[890,800],[1600,800],[1210,1040]]){ const a = .10 + .06*Math.sin(t + x); const gr = g.createRadialGradient(x,y,4,x,y,120); gr.addColorStop(0,`rgba(255,240,190,${a})`); gr.addColorStop(1,'rgba(255,240,190,0)'); g.fillStyle = gr; g.fillRect(x-120,y-120,240,240); } g.restore(); }
   // personagens + recortes do cenário, ordenados pela linha do chão
   const items = [], late = [];  // nomes e balões vão por cima de tudo
-  for(const o of OCC) items.push({y:o.base, d:()=>drawOcc(g,o)});
+  OCC.forEach((o,i)=>items.push({y:o.base, d:()=>drawOcc(g,o,i)}));
   const tops = altarRows(); ALTARS.forEach((a,i)=>{ const r = tops[i]; if(!r) return; items.push({y:a.base, d:()=>drawAltar(g,a,r,ts)});
     late.push(()=>{ const yy = a.y - 150*PK(a.y); g.font = '800 17px "Baloo 2",sans-serif'; g.textAlign = 'center'; const t1 = `Top 1 ${a.t}`, t2 = r.name, tw = Math.max(g.measureText(t1).width, g.measureText(t2).width)+22;
       g.fillStyle = '#2a1606e0'; g.strokeStyle = '#ffd25a'; g.lineWidth = 2; g.beginPath(); g.roundRect(a.x-tw/2, yy-38, tw, 44, 9); g.fill(); g.stroke();
@@ -4649,7 +4672,6 @@ function renderCity(ts){
   for(const b of BUILDINGS){ if(b.noTag) continue; g.font='800 22px "Baloo 2",sans-serif'; g.textAlign='center'; const tw = g.measureText(b.name).width+24, near = nearB===b;
     g.fillStyle = near ? '#ffd25ae6' : '#0c2533d8'; g.beginPath(); g.roundRect(b.tag.x-tw/2, b.tag.y-24, tw, 32, 8); g.fill(); g.fillStyle = near ? '#3a2000' : '#ffd25a'; g.fillText(b.name, b.tag.x, b.tag.y); }
   // luz quente do fim de tarde por cima de tudo (une personagens e pintura)
-  g.save(); g.globalCompositeOperation = 'soft-light'; const lg = g.createLinearGradient(0,0,CW,CH); lg.addColorStop(0,'rgba(255,220,160,.22)'); lg.addColorStop(1,'rgba(60,40,120,.18)'); g.fillStyle = lg; g.fillRect(0,0,CW,CH); g.restore();
   if(me.tx!=null){ g.strokeStyle='#ffd25a'; g.lineWidth=4; g.beginPath(); g.ellipse(me.tx,me.ty,24,9,0,0,7); g.stroke(); }
 }
 ccv.addEventListener('pointerdown', e=>{
@@ -5760,6 +5782,7 @@ async function sendReport(){ const msg = $('optRep').value.trim(); if(msg.length
   catch(e){ toast('Não deu para enviar: '+e.message); } }
 function openOpt(){ $('opt').hidden = false; renderOpt(); }
 function renderOpt(){
+  $('optGfx').textContent = GFX_LOW ? 'Gráficos: baixa (mais leve)' : 'Gráficos: alta';
   $('optAnim').textContent = reduce ? 'Animações: reduzidas' : 'Animações: completas';
   const on = !!CLOUD.token, last = CLOUD.last ? new Date(CLOUD.last).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : 'ainda não';
   $('optCloud').innerHTML = on ? `<p>Conectado como <b>${CLOUD.nick}</b>. Último envio: ${last}.</p><div class="row"><button class="big" id="optPush">Salvar agora</button><button id="optOut">Sair da conta</button></div><p class="dim">O jogo salva sozinho na nuvem enquanto você joga. Entre com o mesmo nick em outro aparelho para continuar de lá.</p>`
@@ -6096,7 +6119,7 @@ function pickStarter(){
 }
 showMap(); showCity(); if(saveNote) toast(saveNote); if(needStarter) playSt('prologo',['intro'], pickStarter);
 if(save.farm){ const out = collectFarm(save, Date.now()); if(out && (out.runs || out.capped)){ persist(); showFarmSummary(out, 'Bem-vindo de volta!'); renderMap(); } }
-addEventListener('resize', ()=>{ cityBg = null; ccv.width = W*K; ccv.height = H*K; if(!$('map').hidden) renderMap(); if(!$('mon').hidden) drawMonStage(); });
+addEventListener('resize', ()=>{ cityBg = null; if(!$('map').hidden) renderMap(); if(!$('mon').hidden) drawMonStage(); });
 
 // ===== Atalhos de teclado =====
 // Esc: fecha a tela aberta e volta para a cidade (na batalha: pausa/continua) · M Monstros · E Equipe · L Livro · B Bolsa · R Ranking · F Fragmentos · P Provação · G Aventura · O Opções
