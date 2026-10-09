@@ -4418,7 +4418,13 @@ function missions(){
   if(save.farm){ const acc = Math.min(FARM_CAP_MS, now-save.farm.last); out.push({t:`<b>Farm</b> ${STAGES[save.farm.stage].name} · ${Math.floor(acc/save.farm.cycleMs)} vitórias`, go:()=>collectNow('Farm coletado')}); }
   return out.slice(0,5);
 }
-function renderCityHud(){
+// Painéis da cidade 25% menores (mais cidade à vista): cada um encolhe na direção do seu canto da tela
+const CITY_UI_SCALE = .75, CITY_UI = [['cityHud',0,0],['cMount',0,0],['cLeft',0,0],['cRight',1,0],['cMission',1,0],['cChat',0,1],['cDock',1,1]];
+function scaleCityUi(){ const cv = $('citycv'); if(!cv) return; const sx = cv.offsetLeft, sy = cv.offsetTop, sw = cv.offsetWidth, sh = cv.offsetHeight;
+  for(const [id,ax,ay] of CITY_UI){ const el = $(id); if(!el) continue; el.style.transform = `scale(${CITY_UI_SCALE})`; el.style.transformOrigin = `${sx+ax*sw-el.offsetLeft}px ${sy+ay*sh-el.offsetTop}px`; } }
+addEventListener('resize', ()=>setTimeout(scaleCityUi, 50));
+function renderCityHud(...a){ renderCityHud0(...a); scaleCityUi(); }
+function renderCityHud0(){
   const now = Date.now(), av = $('cAvatar'); av.textContent=''; const c = document.createElement('canvas'); c.width=c.height=120; const g = c.getContext('2d'); if(!drawSprite(g, heroKey(0), 60, 236, 236, false, {noShadow:true})) drawTrainer(g,60,170,{}); g.setTransform(1,0,0,1,0,0); av.append(c); av.insertAdjacentHTML('beforeend', `<b>${save.trainer.lv}</b>`);
   // retrato da montaria (atalho) com aviso quando dá para treinar
   { const mb = $('cMount'), cv = mb.querySelector('canvas'), gg = cv.getContext('2d'), m = save.mount; gg.clearRect(0,0,120,120);
