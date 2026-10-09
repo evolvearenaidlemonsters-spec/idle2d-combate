@@ -3227,7 +3227,7 @@ const THEMES = {
 };
 THEMES.bglobal = THEMES.templo; THEMES.weekly = THEMES.templo; // fundos pintados próprios (bg/bglobal.jpg, bg/weekly.jpg)
 // Cenários pintados (arte final): quando a imagem existe, substitui o cenário desenhado em código
-const BG_IMGS = Object.fromEntries(['praia','bosque','caverna','vulcao','pico','usina','pantano','templo','dungeon','arena','bglobal','weekly'].map(k=>{ const im = new Image(); im.onload = ()=>{ bg = null; refreshArt(); }; im.src = `bg/${k}.jpg`; return [k, im]; }));
+const BG_IMGS = Object.fromEntries(['praia','bosque','caverna','vulcao','pico','usina','pantano','templo','dungeon','arena','bglobal','weekly'].map(k=>{ const im = new Image(); im.onload = ()=>{ bg = null; refreshArt(); }; im.src = `bg/${k}.jpg?v=92`; return [k, im]; }));
 function drawBg(){
   const stg = B && STAGES[B.stage], tk = stg ? (stg.theme || REGIONS.find(r=>r.id===stg.region).theme) : 'praia', T = THEMES[tk];
   const c = document.createElement('canvas'); c.width=W*K; c.height=H*K;
@@ -3265,7 +3265,10 @@ let MONIMG = {};
 const PIXEL = { has: k => /^\d+$/.test(k) || /^b:/.test(k) }; // todos os monstros e chefes (montarias e poses de costas continuam pintadas)
 const pxSrc = k => `px/${k.replace(':','_')}.webp?v=${typeof ASSET_V!=='undefined'?ASSET_V:'1'}`;
 // se a versão pixel não carregar (ex.: arquivo ausente), volta para a arte pintada
-function pxLoad(im, k, orig){ im.onerror = ()=>{ im.onerror = null; im.src = orig; }; im.src = PIXEL.has(k) ? pxSrc(k) : orig; }
+function pxLoad(im, k, orig){ im.src = orig; } // telas de menu (Monstros, Livro, Equipe...) usam a arte pintada
+// Pixel art só nas cenas de uso (cidade e combate): render()/renderCity() ligam PX_SCENE enquanto desenham
+let PX_SCENE = false; const PXIMG = {};
+function pxImg(k){ if(!PIXEL.has(k)) return null; let im = PXIMG[k]; if(!im){ im = PXIMG[k] = new Image(); im.onload = refreshArt; im.onerror = ()=>{ im.bad = 1; }; im.src = pxSrc(k); } return !im.bad && im.complete && im.naturalWidth ? im : null; }
 let artTimer = 0; // quando uma arte termina de carregar, redesenha as telas abertas que mostram monstros
 function refreshArt(){ clearTimeout(artTimer); artTimer = setTimeout(()=>{ bg = null;
   for(const [id,f] of [['mon',()=>renderMon()],['dex',()=>{ renderDexGrid(); renderDexDet(); }],['sel',()=>buildCards()],['starter',()=>pickStarter()],['dep',()=>renderDep()],['mnt',()=>renderMnt()],['map',()=>drawMap()],['city',()=>renderCityHud()],['prof',()=>renderProf()]]) if(!$(id).hidden) f(); }, 60); }
@@ -3313,7 +3316,7 @@ function tintOf(im, kind){ let m = TINT.get(im); if(!m){ m = {}; TINT.set(im, m)
   const c = document.createElement('canvas'), s = Math.min(1, 256/Math.max(im.naturalWidth, im.naturalHeight)); c.width = Math.max(1, Math.round(im.naturalWidth*s)); c.height = Math.max(1, Math.round(im.naturalHeight*s)); const t = c.getContext('2d');
   t.drawImage(im, 0, 0, c.width, c.height); t.globalCompositeOperation = 'source-atop'; t.fillStyle = kind==='w' ? '#ffffff' : '#141020'; t.fillRect(0, 0, c.width, c.height); return m[kind] = c; }
 function drawCreature(g, sp, x, y, sc, face, opt={}){
-  const A = artOf(sp, opt.form), px = A && PIXEL.has(String(A.id)), bk = opt.back && A && !px && monImg('k:'+A.id), im = bk || (A && monImg(A.id)); if(bk) face = 1; // pose de costas (k:<nº>) para o lado do jogador
+  const A = artOf(sp, opt.form), pim = PX_SCENE && A ? pxImg(String(A.id)) : null, px = !!pim, bk = opt.back && A && !px && monImg('k:'+A.id), im = pim || bk || (A && monImg(A.id)); if(bk) face = 1; // pose de costas (k:<nº>) para o lado do jogador
   if(im){ let h = 74*sc*(1+0.14*(Math.min(A.st,4)-1))*(opt.form && SPECIES[sp].playable ? 1+0.08*opt.form : 1), w = im.naturalWidth*h/im.naturalHeight;
     if(opt.box){ const f = Math.min(1, opt.box[0]/w, opt.box[1]/h); w*=f; h*=f; }
     g.save(); g.translate(x,y); g.globalAlpha = opt.alpha ?? 1;
@@ -3364,7 +3367,7 @@ for(const k of Object.keys(LIB_KIND)) for(let t=1;t<=4;t++) ICON_FILE[libKey(k,t
 const ico = (k, cls='') => ICON_FILE[k] ? `<img class="ico ${cls}" src="ui/${ICON_FILE[k]}.png" alt="">` : `<i class="dot" style="background:${(ITEMS[k]||{}).color||'#ffc23d'}"></i>`;
 // ===== Personagens (arte final): sprites recortados em char/. Sem a imagem, cai no desenho provisório =====
 const CHAR = {};
-const ASSET_V = '91'; // muda quando as imagens dos personagens/cidade mudarem (o navegador guarda as antigas)
+const ASSET_V = '92'; // muda quando as imagens dos personagens/cidade mudarem (o navegador guarda as antigas)
 for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`), 'rideM','rideF','rideS']){
   const im = new Image(); im.onload = ()=>{ bg = null; if(typeof cityBg!=='undefined') cityBg = null; if(!$('starter').hidden) pickStarter(); }; im.src = `char/${k}.png?v=${ASSET_V}`; CHAR[k] = im; }
 const heroKey = view => `hero${(save && save.costume) || (save && save.hero) || 'M'}_${view}`; // 0 frente · 1 três-quartos · 2 lado (andando) · 3 costas · 4 costas arremessando · 5 costas comemorando
@@ -3441,7 +3444,8 @@ const ENERGY_MAX = 25; // barra verde (topo): enche ao bater/derrotar/apanhar; c
 function posOf(u){ return u.boss ? BOSS_POS : POS[u.side][u.slot]; }
 function scaleOf(u){ return u.boss ? 1.45 : u.sub ? 1.05 : 0.85; }
 
-function render(ts){
+function render(ts){ PX_SCENE = true; try{ render0(ts); } finally{ PX_SCENE = false; } }
+function render0(ts){
   if(!bg) bg = drawBg();
   const sx = shake>0 ? (Math.random()-.5)*shake/30 : 0, sy = shake>0 ? (Math.random()-.5)*shake/30 : 0;
   const cam = BS.ultCamera(); // Supremo: a câmera aproxima do atacante e volta no impacto
@@ -4651,7 +4655,8 @@ function cityFrame(ts){
   if(!GFX_LOW || ts - (cityFrame.lr||0) >= 30){ cityFrame.lr = ts; renderCity(ts); }
   cityRaf = requestAnimationFrame(cityFrame);
 }
-function renderCity(ts){
+function renderCity(ts){ PX_SCENE = true; try{ renderCity0(ts); } finally{ PX_SCENE = false; } }
+function renderCity0(ts){
   const g = cctx, KC = cityK(); if(ccv.width !== Math.round(W*KC)){ ccv.width = Math.round(W*KC); ccv.height = Math.round(H*KC); cityBg = null; }
   if(!cityBg || cityBg.S !== KC*CZ) cityBg = bakeCity();
   g.setTransform(1,0,0,1,0,0); g.fillStyle='#3a5a3a'; g.fillRect(0,0,ccv.width,ccv.height);
