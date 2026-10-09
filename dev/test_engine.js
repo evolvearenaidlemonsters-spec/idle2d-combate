@@ -316,3 +316,9 @@ console.log('OK');
   E.migrate(o); assert.strictEqual(o.v,12); assert(!o.owned.dex20033 && o.owned.dex20151); assert.deepStrictEqual(o.team,['dex20151']);
   assert(o.gold === 300*10 + 300*5, 'ouro devolvido'); assert(o.items.pocaoXP===9 && o.items.fruta===2); assert.strictEqual(o.gear.length,1); assert(!o.dex[20033]); assert.strictEqual(o.cutRefund.n,1);
   console.log('corte de monstros OK'); }
+{ // regra: perder ou desistir não gasta VIT
+  const s = E.newSave(E.STARTERS[0]); const now = Date.now(); const v0 = E.vitNow(s, now);
+  assert.strictEqual(E.tryEnter(s,'praia-1',now), null); assert(E.vitNow(s,now) < v0);
+  const b = E.newBattle(s.team,'praia-1'); b.over = 'derrota'; E.applyRewards(s, b); assert.strictEqual(E.vitNow(s,now), v0, 'VIT devolvida na derrota');
+  assert.strictEqual(E.tryEnter(s,'praia-1',now), null); const b2 = E.newBattle(s.team,'praia-1'); b2.over = 'vitoria'; E.applyRewards(s, b2); assert(E.vitNow(s,now) < v0, 'vitória gasta VIT');
+  console.log('VIT na derrota OK'); }

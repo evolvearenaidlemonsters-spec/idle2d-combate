@@ -2457,7 +2457,7 @@ function tryEnter(save, id, now){
   if(STAGES[id].tower){ const why = towerTeamWhy(save.team, STAGES[id].rule); if(why) return why; }
   if(STAGES[id].bglobal && !bgOpen(now)) return 'fechado';
   if(save.vit.cur >= VIT_MAX) save.vit.at = now;
-  save.vit.cur -= vitCost(id,now);
+  save.vit.cur -= vitCost(id,now); save.vitPaid = {id, cost:vitCost(id,now)}; // devolvido se perder ou desistir
   if(STAGES[id].elite || STAGES[id].dungeon || STAGES[id].weekly || STAGES[id].daily) useChance(save,id,now);
   return null;
 }
@@ -2539,6 +2539,8 @@ function applyRewards(save, b, rnd=Math.random){
   if(STAGES[b.stage].waves) for(const e of STAGES[b.stage].waves.flat()) markDex(save, parseFoe(e).sp, 1); // vistos na instância
   if(STAGES[b.stage].gboss) return guildBossResult(save, b, out);
   if(STAGES[b.stage].bglobal) return bgResult(save, b, out);
+  if(b.over!=='vitoria' && save.vitPaid && save.vitPaid.id===b.stage){ save.vit.cur += save.vitPaid.cost; out.vitBack = save.vitPaid.cost; } // regra: derrota ou desistência não gasta VIT
+  save.vitPaid = null;
   save.losses = save.losses || {};
   if(b.over!=='vitoria'){ if(!b.quit && b.stage!=='arena') save.losses[b.stage] = (save.losses[b.stage]||0)+1; out.losses = save.losses[b.stage]||0; return out; }
   delete save.losses[b.stage];
@@ -5271,6 +5273,7 @@ function showResultImpl(){
   $('trainer').innerHTML = win ? `<dt>Treinador Nv</dt><dd>${save.trainer.lv}${r.trainerUp?' ▲':''}</dd><dt>EXP</dt><dd>+${r.trainerExp}</dd>` : '';
   $('resInfo').textContent = win ? `Tempo ${mmss(elapsed(B))} (recomendado ${mmss(STAGES[B.stage].recSec)})`
     : B.quit ? `Você saiu na onda ${B.wave+1}.` : B.over==='limite' ? `A onda passou de ${MAX_ACTIONS_PER_WAVE} ações sem terminar.` : `Todas as suas criaturas caíram na onda ${B.wave+1}.`;
+  if(r.vitBack) $('resInfo').textContent += ` A VIT (${r.vitBack}) foi devolvida.`;
   const P = $('prizes');
   if(r && r.bglobal){ $('resTitle').textContent = 'Fim da luta'; P.innerHTML = `<section><h3>BOSS Global</h3><p>Dano nesta luta: <b>${r.bglobal.dmg.toLocaleString('pt-BR')}</b></p><p>Total de hoje: <b>${r.bglobal.total.toLocaleString('pt-BR')}</b></p><p>O ranking fecha à meia-noite; o prêmio (até 3 Pedras Mega) é coletado amanhã no BOSS Global.</p></section>`; }
   else if(r && r.gboss){ $('resTitle').textContent = 'Fim da luta'; P.innerHTML = `<section><h3>Chefe da Guilda</h3><p>Dano causado: <b>${r.gboss.dmg.toLocaleString('pt-BR')}</b></p><p>${ico('moedaG')} +${r.gboss.coins} Moedas da Guilda</p></section>`; }
