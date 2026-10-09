@@ -2,7 +2,7 @@
 import sys, numpy as np
 from PIL import Image, ImageFilter
 from scipy import ndimage
-def pixelize(src, dst, H=84, colors=32, out=5):
+def pixelize(src, dst, H=84, colors=32, out=3):
     im = Image.open(src).convert('RGBA'); a = np.asarray(im)
     ys, xs = np.where(a[...,3] > 40); im = im.crop((xs.min(), ys.min(), xs.max()+1, ys.max()+1))
     w = max(1, round(im.width*H/im.height))
@@ -27,5 +27,15 @@ def pixelize(src, dst, H=84, colors=32, out=5):
     c[inner] = (c[inner]*0.45).astype(np.int32)
     o = np.dstack([c.clip(0,255), alpha*255]).astype(np.uint8)
     # moldura transparente de 1 px e ampliação nearest
-    Image.fromarray(o,'RGBA').resize((o.shape[1]*out, o.shape[0]*out), Image.NEAREST).save(dst)
-for f in sys.argv[1:]: pixelize(f, f.replace('.webp','_px.png'))
+    im2 = Image.fromarray(o,'RGBA').resize((o.shape[1]*out, o.shape[0]*out), Image.NEAREST)
+    im2.quantize(colors=64, method=Image.FASTOCTREE, dither=Image.NONE).save(dst, optimize=True)
+if __name__=='__main__':
+    # uso: pixelar.py <pasta_entrada> <pasta_saida>  (converte todos os .webp de monstros, chefes, costas e montarias)
+    import os, glob
+    from multiprocessing import Pool
+    src, out = sys.argv[1], sys.argv[2]; os.makedirs(out, exist_ok=True)
+    fs = [f for f in glob.glob(src+'/*.webp')]
+    def job(f):
+        try: pixelize(f, os.path.join(out, os.path.basename(f)[:-5]+'.png')); return 0
+        except Exception as e: print('ERRO', f, e); return 1
+    with Pool(8) as p: print('erros:', sum(p.map(job, fs)), 'de', len(fs))

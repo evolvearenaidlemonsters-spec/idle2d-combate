@@ -3262,18 +3262,20 @@ function shade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=n>>8&255
 // ===== Monstros (arte final): mon/<nº da Pokédex>.png. Quem ainda não tem arte usa a forma provisória =====
 let MONIMG = {};
 // Monstros já convertidos para pixel art (px/<nº>.png, feitos por tools/pixelar.py): desenhados sem suavizar
-const PIXEL = new Set(['20132','20521','20522','20523','20524','20851','20852']);
-const pxSrc = k => `px/${k}.png?v=${typeof ASSET_V!=='undefined'?ASSET_V:'1'}`;
+const PIXEL = { has: k => /^\d+$/.test(k) || /^b:/.test(k) }; // todos os monstros e chefes (montarias e poses de costas continuam pintadas)
+const pxSrc = k => `px/${k.replace(':','_')}.webp?v=${typeof ASSET_V!=='undefined'?ASSET_V:'1'}`;
+// se a versão pixel não carregar (ex.: arquivo ausente), volta para a arte pintada
+function pxLoad(im, k, orig){ im.onerror = ()=>{ im.onerror = null; im.src = orig; }; im.src = PIXEL.has(k) ? pxSrc(k) : orig; }
 let artTimer = 0; // quando uma arte termina de carregar, redesenha as telas abertas que mostram monstros
 function refreshArt(){ clearTimeout(artTimer); artTimer = setTimeout(()=>{ bg = null;
   for(const [id,f] of [['mon',()=>renderMon()],['dex',()=>{ renderDexGrid(); renderDexDet(); }],['sel',()=>buildCards()],['starter',()=>pickStarter()],['dep',()=>renderDep()],['mnt',()=>renderMnt()],['map',()=>drawMap()],['city',()=>renderCityHud()],['prof',()=>renderProf()]]) if(!$(id).hidden) f(); }, 60); }
 // arte empacotada em art/pack_N.js (tools/pack_art.py): cada pacote chama ART({id: dataURL})
-window.ART = d => { for(const k in d){ const im = MONIMG[k] = new Image(); im.onload = refreshArt; im.src = PIXEL.has(k) ? pxSrc(k) : d[k]; } };
+window.ART = d => { for(const k in d){ const im = MONIMG[k] = new Image(); im.onload = refreshArt; pxLoad(im, k, d[k]); } };
 const ART_LAZY = IS_PUBLIC || /[?&]lazy/.test(location.search); // site: cada imagem baixa só quando aparece (cache do navegador)
 if(ART_LAZY){
   const want = new Set(), raw = MONIMG;
   window.ARTKEYS = ks => { for(const k of ks) want.add(k); window.__artKeys = ks; refreshArt(); };
-  MONIMG = new Proxy(raw, {get(t, k){ if(typeof k !== 'string') return t[k]; if(!t[k] && want.has(k)){ const im = t[k] = new Image(); im.decoding = 'async'; im.onload = refreshArt; im.src = PIXEL.has(k) ? pxSrc(k) : `art/i/${k.replace(':','_')}.webp`; } return t[k]; }});
+  MONIMG = new Proxy(raw, {get(t, k){ if(typeof k !== 'string') return t[k]; if(!t[k] && want.has(k)){ const im = t[k] = new Image(); im.decoding = 'async'; im.onload = refreshArt; pxLoad(im, k, `art/i/${k.replace(':','_')}.webp`); } return t[k]; }});
   const sc = document.createElement('script'); sc.src = 'art/i/keys.js'; document.head.append(sc);
 } else {
 window.__packs = 0; for(let i=0;i<10;i++){ const sc = document.createElement('script'); sc.onload = sc.onerror = ()=>window.__packs++; sc.src = `art/pack_${i}.js`; document.head.append(sc); }
@@ -3362,7 +3364,7 @@ for(const k of Object.keys(LIB_KIND)) for(let t=1;t<=4;t++) ICON_FILE[libKey(k,t
 const ico = (k, cls='') => ICON_FILE[k] ? `<img class="ico ${cls}" src="ui/${ICON_FILE[k]}.png" alt="">` : `<i class="dot" style="background:${(ITEMS[k]||{}).color||'#ffc23d'}"></i>`;
 // ===== Personagens (arte final): sprites recortados em char/. Sem a imagem, cai no desenho provisório =====
 const CHAR = {};
-const ASSET_V = '90'; // muda quando as imagens dos personagens/cidade mudarem (o navegador guarda as antigas)
+const ASSET_V = '91'; // muda quando as imagens dos personagens/cidade mudarem (o navegador guarda as antigas)
 for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`), 'rideM','rideF','rideS']){
   const im = new Image(); im.onload = ()=>{ bg = null; if(typeof cityBg!=='undefined') cityBg = null; if(!$('starter').hidden) pickStarter(); }; im.src = `char/${k}.png?v=${ASSET_V}`; CHAR[k] = im; }
 const heroKey = view => `hero${(save && save.costume) || (save && save.hero) || 'M'}_${view}`; // 0 frente · 1 três-quartos · 2 lado (andando) · 3 costas · 4 costas arremessando · 5 costas comemorando
