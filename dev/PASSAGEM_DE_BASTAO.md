@@ -389,3 +389,6 @@ A Beatriz pediu: **toda atualização nova vai para o link dos amigos**. Depois 
 - FALTA: heroG poses 4/5/montaria e todo o traje S (Esqueleto) no estilo novo — o link com o navegador caiu no meio. Prompts em /home/claude/gen/pix/prompts.json (boyG2, boyS1, boyS2). Recorte: tools/cut_pix.py <folha> ids pasta 360 1 [drop].
 - Rivais (tr_*) foram recortados com cortes retos (se encostavam na folha); dá para refazer com espaço.
 - 09/10 00h38: família de fogo original (fogo3.png) CANCELADA pela Beatriz — não incluir.
+- 09/10 00h55 — CACHE DO LINK: o Worker idle2d guardava char/city/ui por 1 dia no cache da borda, com chave SEM o ?v= (por isso a arte nova não aparecia). Worker reescrito: index.html = no-cache (30 s na borda); arquivos com ?v= ficam 30 dias com a versão na chave; o resto 10 min. Ao trocar arte de personagem/cidade, SUBIR ASSET_V no combate.html (agora '89').
+- Painéis da cidade 25% menores: scaleCityUi() (CITY_UI_SCALE), cada painel encolhe rumo ao seu canto.
+- 09/10 07h — Monstros v11 'Holo' (CSS no fim do <style>): molduras de metal, abas biseladas, cartas grandes; painéis 25% menores via scaleMonUi() (MON_UI). A partir de agora toda mudança vai direto para o link.
