@@ -404,3 +404,10 @@ A Beatriz pediu: **toda atualização nova vai para o link dos amigos**. Depois 
 - 09/10 11h25 — PENDENTE: novos cenários de batalha (bg/*.jpg) no estilo da cidade. Prompts prontos em /home/claude/gen/bgnew/prompts.json (praia..arena). Bloqueado: navegador do PC (Gemini) desconectado.
 - 09/10 12h55 — v9.9: pixel art só nas cenas (PX_SCENE em render()/renderCity(); PXIMG separado); menus voltam a arte pintada. Novos fundos de batalha (Gemini via Chrome) praia e bosque em bg/ (antigos em /home/claude/gen/bgold). Faltam caverna, vulcao, pico, usina, pantano, templo, dungeon, arena (prompts em /home/claude/gen/bgnew/prompts.json). Transporte de imagem: Chrome hidden congela a aba → clicar + AudioContext mudo destrava; imagem vai p/ artifact 'Recebedor de Arte' (6wthfTkT3MXWPV3Cq781QN, capability assets) e leio com Artifact read path=<id>.
 - 09/10 13h10 — v10.0: os 10 fundos de batalha novos instalados (bg/*.jpg, ?v=93). Originais em /home/claude/gen/bgold.
+
+## v10.1
+- Fim de onda: inimigos derrotados ficam em `ghosts` até sumirem; a nova onda só entra depois (waveWait).
+- Pixel art só na cidade (PX_SCENE só em renderCity). Combate e menus usam arte pintada.
+- Personagens: char/ = pixel (cidade), charo/ = arte original (resto). drawSprite escolhe por PX_SCENE.
+- Montarias: px/m_<k>.webp (pixel na cidade); tela de Montarias continua pintada.
+- Recompensas: medalha da Arena com ícone de verdade; "Diamantes" e retrato da criatura nova no popup da 1ª vitória; título longo do resultado menor.

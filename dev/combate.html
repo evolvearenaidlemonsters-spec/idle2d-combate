@@ -1290,7 +1290,7 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #dexBar select,#dexBar input{font-size:14px!important;padding:4px 6px!important;max-width:150px}
 #res .box{border:0!important;border-radius:0!important;clip-path:polygon(22px 0,calc(100% - 22px) 0,100% 22px,100% calc(100% - 22px),calc(100% - 22px) 100%,22px 100%,0 calc(100% - 22px),0 22px);
   background:linear-gradient(180deg,#14345cf5,#0a1c38f8 60%,#06132af8)!important;box-shadow:inset 0 0 0 3px #ffd36a,inset 0 0 50px #ffcf5a33!important}
-#res #resTitle{font-family:'Lilita One',var(--font);font-size:44px!important;background:linear-gradient(#fff6c0,#ffc23d 55%,#e07a10);-webkit-background-clip:text;background-clip:text;color:transparent!important;filter:drop-shadow(0 3px 0 #6a3800);letter-spacing:1px}
+#res #resTitle.long{font-size:32px!important;white-space:nowrap}#res #resTitle{font-family:'Lilita One',var(--font);font-size:44px!important;background:linear-gradient(#fff6c0,#ffc23d 55%,#e07a10);-webkit-background-clip:text;background-clip:text;color:transparent!important;filter:drop-shadow(0 3px 0 #6a3800);letter-spacing:1px}
 #res.lose .box{box-shadow:inset 0 0 0 3px #8aa6c8,inset 0 0 50px #4a6a9233!important}
 #res.lose #resTitle{background:linear-gradient(#e8f0ff,#9ab4d8 55%,#5a7aa8);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 3px 0 #1a2a48)}
 #res #stars svg{filter:drop-shadow(0 0 8px #ffcf5a)}
@@ -3262,11 +3262,11 @@ function shade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=n>>8&255
 // ===== Monstros (arte final): mon/<nº da Pokédex>.png. Quem ainda não tem arte usa a forma provisória =====
 let MONIMG = {};
 // Monstros já convertidos para pixel art (px/<nº>.png, feitos por tools/pixelar.py): desenhados sem suavizar
-const PIXEL = { has: k => /^\d+$/.test(k) || /^b:/.test(k) }; // todos os monstros e chefes (montarias e poses de costas continuam pintadas)
+const PIXEL = { has: k => /^\d+$/.test(k) || /^[bm]:/.test(k) }; // todos os monstros e chefes (montarias e poses de costas continuam pintadas)
 const pxSrc = k => `px/${k.replace(':','_')}.webp?v=${typeof ASSET_V!=='undefined'?ASSET_V:'1'}`;
 // se a versão pixel não carregar (ex.: arquivo ausente), volta para a arte pintada
 function pxLoad(im, k, orig){ im.src = orig; } // telas de menu (Monstros, Livro, Equipe...) usam a arte pintada
-// Pixel art só nas cenas de uso (cidade e combate): render()/renderCity() ligam PX_SCENE enquanto desenham
+// Pixel art só na cidade: renderCity() liga PX_SCENE enquanto desenha (monstros, personagens e montarias)
 let PX_SCENE = false; const PXIMG = {};
 function pxImg(k){ if(!PIXEL.has(k)) return null; let im = PXIMG[k]; if(!im){ im = PXIMG[k] = new Image(); im.onload = refreshArt; im.onerror = ()=>{ im.bad = 1; }; im.src = pxSrc(k); } return !im.bad && im.complete && im.naturalWidth ? im : null; }
 let artTimer = 0; // quando uma arte termina de carregar, redesenha as telas abertas que mostram monstros
@@ -3366,14 +3366,16 @@ const ICON_FILE = {pedraMU:'i_pedraMU', moedaG:'i_moedaG', pocaoXP:'i_0', fruta:
 for(const k of Object.keys(LIB_KIND)) for(let t=1;t<=4;t++) ICON_FILE[libKey(k,t)] = 'i_'+libKey(k,t);
 const ico = (k, cls='') => ICON_FILE[k] ? `<img class="ico ${cls}" src="ui/${ICON_FILE[k]}.png" alt="">` : `<i class="dot" style="background:${(ITEMS[k]||{}).color||'#ffc23d'}"></i>`;
 // ===== Personagens (arte final): sprites recortados em char/. Sem a imagem, cai no desenho provisório =====
-const CHAR = {};
-const ASSET_V = '92'; // muda quando as imagens dos personagens/cidade mudarem (o navegador guarda as antigas)
-for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`), 'rideM','rideF','rideS']){
-  const im = new Image(); im.onload = ()=>{ bg = null; if(typeof cityBg!=='undefined') cityBg = null; if(!$('starter').hidden) pickStarter(); }; im.src = `char/${k}.png?v=${ASSET_V}`; CHAR[k] = im; }
+const CHAR = {}, CHARO = {}; // CHAR: pixel art (cidade) · CHARO: arte original (resto do jogo)
+const ASSET_V = '94'; // muda quando as imagens dos personagens/cidade mudarem (o navegador guarda as antigas)
+for(const k of [...['heroM','heroF','heroG','heroS'].flatMap(h=>[0,1,2,3,4,5].map(i=>`${h}_${i}`)), ...[0,1,2,3,4].map(i=>`npc_${i}`), ...[0,1,2,3,4,5].map(i=>`tr_${i}`), 'rideM','rideF','rideS','rideG']){
+  const im = new Image(); im.onload = ()=>{ bg = null; if(typeof cityBg!=='undefined') cityBg = null; if(!$('starter').hidden) pickStarter(); }; im.src = `char/${k}.png?v=${ASSET_V}`; CHAR[k] = im;
+  const io = new Image(); io.src = `charo/${k}.png?v=${ASSET_V}`; CHARO[k] = io; }
 const heroKey = view => `hero${(save && save.costume) || (save && save.hero) || 'M'}_${view}`; // 0 frente · 1 três-quartos · 2 lado (andando) · 3 costas · 4 costas arremessando · 5 costas comemorando
 const heroPose = view => { const k = heroKey(view), im = CHAR[k]; return im && im.complete && im.naturalWidth ? k : heroKey(3); };
+const charOk = im => im && im.complete && im.naturalWidth;
 function drawSprite(g, key, x, y, h=124, flip=false, o={}){
-  const im = CHAR[key]; if(!im || !im.complete || !im.naturalWidth) return false;
+  const im = PX_SCENE ? (charOk(CHAR[key]) ? CHAR[key] : CHARO[key]) : (charOk(CHARO[key]) ? CHARO[key] : CHAR[key]); if(!charOk(im)) return false;
   const w = im.naturalWidth*h/im.naturalHeight, bob = o.bob||0;
   if(!o.noShadow){ g.fillStyle='#0005'; g.beginPath(); g.ellipse(x,y+2,w*.32,9,0,0,7); g.fill(); }
   g.save(); g.translate(x, y+bob); if(flip) g.scale(-1,1); if(o.clipY!=null){ g.beginPath(); g.rect(-w,-h-10,w*2,h+10-o.clipY); g.clip(); } g.drawImage(im,-w/2,-h,w,h); g.restore(); return true;
@@ -3394,14 +3396,14 @@ function drawTrainer(g,x,y,o={}){
 // Montaria: quadrúpede provisório com detalhes por espécie; o treinador vai sentado em cima
 // traje da montaria: recolore a arte (mantém luz e sombra) e guarda em cache
 const SKIN_C = {};
-function mountArt(k, skin){ const mi = monImg('m:'+k); if(!mi || !skin || !MOUNT_SKINS[skin]) return mi; const key = k+'|'+skin; if(SKIN_C[key]) return SKIN_C[key];
+function mountArt(k, skin){ const pm = PX_SCENE && pxImg('m:'+k), mi = pm || monImg('m:'+k); if(!mi || !skin || !MOUNT_SKINS[skin]) return mi; const key = k+'|'+skin+(pm?'|px':''); if(SKIN_C[key]) return SKIN_C[key];
   const [col, a] = MOUNT_SKINS[skin].tint, c = document.createElement('canvas'); c.width = mi.naturalWidth; c.height = mi.naturalHeight; const g = c.getContext('2d');
   g.drawImage(mi,0,0); g.globalAlpha = a; g.globalCompositeOperation = skin==='celeste' ? 'soft-light' : 'color'; g.fillStyle = col; g.fillRect(0,0,c.width,c.height);
   g.globalAlpha = 1; g.globalCompositeOperation = 'destination-in'; g.drawImage(mi,0,0); c.naturalWidth = c.width; c.naturalHeight = c.height; return SKIN_C[key] = c; }
 const curSkin = k => (save && save.mount && save.mount.cur===k) ? (mntPreviewSkin !== undefined ? mntPreviewSkin : save.mount.skin) : null;
 let mntPreviewSkin; // na tela da montaria: traje sendo provado
 function drawMount(g, k, x, y, sc=1, face=1, step=0){
-  const mi = mountArt(k, curSkin(k)); if(mi){ const h = 150*sc, w = mi.naturalWidth*h/mi.naturalHeight; g.save(); g.translate(x,y); g.fillStyle='#0004'; g.beginPath(); g.ellipse(0,2,w*.4,9*sc,0,0,7); g.fill(); g.translate(0,-Math.abs(step)*1.5); if(face<0) g.scale(-1,1); g.drawImage(mi,-w/2,-h+4*sc,w,h); g.restore(); return; }
+  const mi = mountArt(k, curSkin(k)); if(mi){ const h = 150*sc, w = mi.naturalWidth*h/mi.naturalHeight; g.save(); g.translate(x,y); g.fillStyle='#0004'; g.beginPath(); g.ellipse(0,2,w*.4,9*sc,0,0,7); g.fill(); g.translate(0,-Math.abs(step)*1.5); if(face<0) g.scale(-1,1); if(PX_SCENE && pxImg('m:'+k)) g.imageSmoothingEnabled = false; g.drawImage(mi,-w/2,-h+4*sc,w,h); g.restore(); return; }
   const M = MOUNTS[k], c = M.color; g.save(); g.translate(x,y); g.scale(sc*face,sc);
   g.fillStyle='#0004'; g.beginPath(); g.ellipse(0,4,46,11,0,0,7); g.fill();
   g.fillStyle=shade(c,-.3); for(const [lx,ph] of [[-26,1],[-12,-1],[14,1],[28,-1]]){ g.fillRect(lx-4,-26+Math.max(0,ph*step),8,26-Math.max(0,ph*step)); }
@@ -3427,24 +3429,26 @@ function drawRider(g, x, y, o={}){
   const f = o.face||1, step = o.step||0, lift = -Math.abs(step)*1.5; drawMount(g, o.mount, x, y, 1, f, step);
   const H = o.h||124, mi = monImg('m:'+o.mount), S = SADDLE[o.mount];
   const sx = mi ? S[0]*150*mi.naturalWidth/mi.naturalHeight*f : -4*f, seat = mi ? S[1]*150 : 50;
-  const rk = `ride${(save&&save.costume)||(save&&save.hero)||'M'}`, rim = CHAR[rk];
-  if(rim && rim.complete && rim.naturalWidth){ const h = H*.86; // pose sentada: o quadril (≈62% da altura) fica na sela e sobe/desce junto com a montaria
+  const rk = `ride${(save&&save.costume)||(save&&save.hero)||'M'}`;
+  if(charOk(PX_SCENE ? CHAR[rk] : CHARO[rk])){ const h = H*.86; // pose sentada: o quadril (≈62% da altura) fica na sela e sobe/desce junto com a montaria
     drawSprite(g, rk, x+sx, y-seat+lift+h*.38, h, f<0, {noShadow:true}); return; }
   const key = o.sprite || heroKey(2);
-  if(CHAR[key] && CHAR[key].naturalWidth){ drawSprite(g, key, x+sx, y-seat+lift+H*.28, H*.9, f<0, {noShadow:true, clipY:H*.9*.28}); return; }
+  if(charOk(CHAR[key]) || charOk(CHARO[key])){ drawSprite(g, key, x+sx, y-seat+lift+H*.28, H*.9, f<0, {noShadow:true, clipY:H*.9*.28}); return; }
   g.save(); g.beginPath(); g.rect(x-60,y-200,120,160); g.clip(); drawTrainer(g, x-4*f, y-34, {...o, step:0}); g.restore();
 }
 // ---- estado visual ----
 const V = new WeakMap(); // por unidade: vida mostrada, barra, deslocamento, flash
 const vis = u => { let v=V.get(u); if(!v){ v={hp:u.hp,bar:u.hp,dx:0,dy:0,flash:0,alpha:1,ent:1}; V.set(u,v); } return v; };
 let loading = false;
+let ghosts = [], waveWait = false; // fim de onda: os derrotados terminam de sumir antes da próxima onda entrar
+const scene = () => ghosts.length ? all(B).concat(ghosts) : all(B);
 let B=null, team=[], anim=null, auto=false, speed=1, paused=false, waiting=null, selTarget=null, pending=null, floaters=[], combo=0, comboT=0, hold=0, energy=0;
 const ENERGY_MAX = 25; // barra verde (topo): enche ao bater/derrotar/apanhar; cheia, o Supremo do aliado vira cinema
 
 function posOf(u){ return u.boss ? BOSS_POS : POS[u.side][u.slot]; }
 function scaleOf(u){ return u.boss ? 1.45 : u.sub ? 1.05 : 0.85; }
 
-function render(ts){ PX_SCENE = true; try{ render0(ts); } finally{ PX_SCENE = false; } }
+function render(ts){ render0(ts); } // combate: arte normal (pixel art só na cidade)
 function render0(ts){
   if(!bg) bg = drawBg();
   const sx = shake>0 ? (Math.random()-.5)*shake/30 : 0, sy = shake>0 ? (Math.random()-.5)*shake/30 : 0;
@@ -3455,7 +3459,7 @@ function render0(ts){
   drawVignette(); drawAmb();
   if(curStage==='arena') drawTrainer(ctx, 975, 145, {h:88, sprite:`tr_${(arenaOpp?arenaOpp.id:0)%6}`, face:-1});
   const cur = waiting || (anim && anim.ev.actor);
-  const units = all(B).slice().sort((a,b)=>posOf(a)[1]-posOf(b)[1]);
+  const units = scene().slice().sort((a,b)=>posOf(a)[1]-posOf(b)[1]);
   for(const u of units){
     const v = vis(u), [x0,y0] = posOf(u), sc=scaleOf(u), kb=(v.kb||0)*(v.kb||0), sink = v.dt>320 ? (v.dt-320)/520*22 : 0, x=x0+v.dx+(v.kbx||0)*kb, y=y0+v.dy+(v.kby||0)*kb+sink, ent = v.ent??1;
     if(ent<=0) continue;
@@ -3569,7 +3573,8 @@ function frameBody(ts){
     const d = dt*speed;
     for(const f of floaters){ f.life-=d; if(f.kind==='dmg'){ f.age=(f.age||0)+d; const q=Math.min(1,f.age/900), e=1-Math.pow(1-q,3); f.y=f.y0-f.rise*e; f.x=f.x0+f.drift*e; } else f.y-=d*0.04; } floaters = floaters.filter(f=>f.life>0);
     for(const b of bursts) b.t+=d; bursts = bursts.filter(b=>b.t<380); for(const b of beams) b.t+=d; beams = beams.filter(b=>b.t<620); if(shake>0) shake-=d; if(flashW>0) flashW-=d;
-    for(const u of all(B)){ const v=vis(u); BS.animateHp(v, d); if(v.flash>0) v.flash-=d; if(v.pulse>0) v.pulse-=d; if(v.kb>0) v.kb=Math.max(0,v.kb-d/240);
+    if(waveWait && ghosts.every(u=>vis(u).alpha<=0)){ waveWait = false; ghosts = []; beginIntro(B.foes, `Onda ${B.wave+1}/${STAGES[B.stage].waves.length}`); }
+    for(const u of scene()){ const v=vis(u); BS.animateHp(v, d); if(v.flash>0) v.flash-=d; if(v.pulse>0) v.pulse-=d; if(v.kb>0) v.kb=Math.max(0,v.kb-d/240);
       if(v.hp<=0 && v.alpha>0){ v.dt=(v.dt||0)+d; // derrota: pisca, vira silhueta, afunda e some
         if(!v.puff && v.dt>260){ v.puff=1; const [px,py]=posOf(u); spark(px, py-30*scaleOf(u), ['#3a3550','#6a6488','#ffffff'], 16, {speed:.18, up:.05, r:7, life:700, g:-.0002, w:50, h:30}); if(u.side==='E') orbs.push({x:px, y:py-50*scaleOf(u), t:0, sx:px, sy:py-50*scaleOf(u)}); }
         if(v.dt>320) v.alpha=Math.max(0,1-(v.dt-320)/520); } }
@@ -3645,6 +3650,7 @@ function drawArenaHead(){ const left = save.name || 'Você', right = arenaOpp ? 
 // Entrada: o treinador arremessa uma cápsula para cada aliado (arco + clarão); inimigos surgem de uma nuvem roxa
 const TRAINER_HAND = [180, 375];
 function beginIntro(units, banner){
+  if(!waveWait) ghosts = [];
   const items = units.map((u,i)=>({u, delay: (u.side==='A' ? 0 : 260) + (u.side==='A'?i:i%3)*190, kind:u.side}));
   for(const it of items){ const v = vis(it.u); v.ent = 0; }
   intro = {t:0, items, dur: Math.max(...items.map(i=>i.delay)) + 820};
@@ -3740,7 +3746,7 @@ function runAnim(d){
   if(p>=1){
     va.dx = va.dy = 0; anim = null;
     if(B.over){ hold = 0; setTimeout(showResult, 700); return; }
-    if(a.ev.newWave){ updateTop(); beginIntro(B.foes, `Onda ${B.wave+1}/${STAGES[B.stage].waves.length}`); return; }
+    if(a.ev.newWave){ updateTop(); waveWait = true; return; } // a próxima onda entra quando os derrotados sumirem
     next();
   }
 }
@@ -3977,7 +3983,8 @@ class BattleSystem {
   executeAction(u,s,t){
     if(anim || B.over || current(B)!==u) return; // evita ação dupla
     waiting = null; pending = null; this.qPreview = null; this.renderSkillPanel(null);
-    const ev = act(B,s,t);
+    const prev = B.foes, ev = act(B,s,t);
+    if(ev.newWave){ ghosts = prev; waveWait = false; for(const f of B.foes) vis(f).ent = 0; } // nova onda fica escondida até a entrada
     this.playAction(u, ev); return ev;
   }
   playAction(u, ev){
@@ -4173,7 +4180,7 @@ function enter(id){
 }
 function start(foes=null){
   bg = null;
-  B = newBattle(save.team.slice(), curStage, progMap(save), foes); anim=null; waiting=null; pending=null; selTarget=null; floaters=[]; parts=[]; orbs=[]; bursts=[]; beams=[]; amb=[]; hitStop=0; intro=null; vsIntro=null; hold=0; combo=0; comboT=0; energy=0; drawCombo();
+  B = newBattle(save.team.slice(), curStage, progMap(save), foes); anim=null; waiting=null; pending=null; selTarget=null; floaters=[]; parts=[]; orbs=[]; bursts=[]; beams=[]; amb=[]; hitStop=0; intro=null; vsIntro=null; ghosts=[]; waveWait=false; hold=0; combo=0; comboT=0; energy=0; drawCombo();
   BS.applyPrefs();
   if(!$('city').hidden) fromCity = true; else if(!$('map').hidden) fromCity = false;
   { const st = STAGES[curStage]; music(st && (st.idx===4 || st.dungeon) ? 'boss' : 'battle'); }
@@ -4946,7 +4953,7 @@ function renderCap(){
   capDecor();
   $('capCards').innerHTML = `<div class="capc"><h3>Cápsula Comum</h3><span class="cbeam">${imgOr('cap0','ui/m_1.png').replace('<img','<img class="cimg"')}</span><span class="free">${fl>0?'1 grátis agora!':`Grátis em ${Math.ceil(freeIn(save,now)/60e3)} min`}</span><details><summary>Chances ▾</summary>${list(CAPSULE.comum.table)}</details><div class="row"><button class="big" id="spinC">${fl>0?'Abrir ×1 · Grátis':`Abrir ×1 · ${CAPSULE.comum.gold/1000}k ouro`}</button><button class="big alt" id="spinC10">Abrir ×10 · ${CAPSULE.comum.gold*10/1000}k ouro</button></div></div>
     <div class="capc raro"><h3>Cápsula Rara</h3><span class="cbeam">${imgOr('cap1','ui/m_1.png').replace('<img','<img class="cimg"')}</span><span class="free">${fr?'1 grátis hoje!':'Grau A garantido em 10% dos giros'}</span><details><summary>Chances ▾</summary>${list(CAPSULE.raro.table)}</details><div class="row"><button class="big" id="spinR1">${fr?'Abrir ×1 · Grátis hoje':`Abrir ×1 · ${CAPSULE.raro.cost}💎`}</button><button class="big alt" id="spinR10">Abrir ×10 · ${CAPSULE.raro.cost10}💎</button></div></div>`;
-  if(!$('capProf')){ $('cap').insertAdjacentHTML('afterbegin', `<img id="capProf" alt="Professor" src="char/npc_1.png?v=${ASSET_V}"><div id="capSay"></div>`); }
+  if(!$('capProf')){ $('cap').insertAdjacentHTML('afterbegin', `<img id="capProf" alt="Professor" src="charo/npc_1.png?v=${ASSET_V}"><div id="capSay"></div>`); }
   $('capSay').textContent = fl>0 || fr ? 'Olá! Tem cápsula grátis esperando por você. Coloque na máquina e veja o que sai!' : 'A máquina está pronta. Cada cápsula pode guardar um monstro raro…';
   let busy = false;
   const spin = (kind,n) => { if(busy) return; const r = spinCapsule(save, kind, n, Date.now()); if(r.why) return toast(r.why==='ouro'?`Ouro insuficiente: cada giro custa ${CAPSULE.comum.gold} de ouro.`:'Diamantes insuficientes.'); persist(); busy = true;
@@ -5086,9 +5093,10 @@ function showArenaResult(){
   $('resTitle').textContent = r.win ? 'Vitória!' : B.over==='limite' ? 'Tempo esgotado' : 'Derrota';
   for(const el of ['stars','trainer','againBtn','nextBtn']) $(el).hidden = true;
   $('resInfo').textContent = r.win ? (r.to < r.from ? `Você subiu de #${r.from} para #${r.to}!` : `Posição mantida: #${r.to}`) : `Posição mantida: #${r.to}`;
-  $('prizes').innerHTML = `<section><h3>Prêmios</h3><div class="tiles"><div class="tile"><span class="ic"><i style="background:${ITEMS.medalha.color}"></i></span><span class="q">×${r.medals}</span>Medalha de Arena</div></div></section>
+  $('prizes').innerHTML = `<section><h3>Prêmios</h3><div class="tiles"><div class="tile"><span class="ic">${ico('medalha','icoL')}</span><span class="q">×${r.medals}</span>Medalha de Arena</div></div></section>
     <p>Série de vitórias: ${save.arena.stats.streak}. Lutas restantes hoje: ${fightsLeft(save,Date.now())}/${ARENA_DAILY}. Próxima luta em ${ARENA_CD_MS/60000} min.</p>`;
   $('teamBtn').textContent = 'Voltar à Arena';
+  fitResTitle();
   showSkills(null); $('res').hidden = false;
 }
 $('arenaOpen').onclick = ()=>openArena();
@@ -5101,7 +5109,7 @@ function openExpl(room){ if(room) explRoom = room; $('expl').hidden = false; ren
 function renderExpl(){
   const R = EXPL_ROOMS.find(r=>r.id===explRoom), now = Date.now();
   $('explBg').style.backgroundImage = `url(bg/${R.theme}.jpg)`;
-  $('explChars').innerHTML = `<img class="xh" alt="" src="char/${heroKey(0)}.png?v=${ASSET_V}"><img class="xn" alt="" src="char/npc_4.png?v=${ASSET_V}">`;
+  $('explChars').innerHTML = `<img class="xh" alt="" src="charo/${heroKey(0)}.png?v=${ASSET_V}"><img class="xn" alt="" src="charo/npc_4.png?v=${ASSET_V}">`;
   $('explPow').textContent = teamPower();
   $('explTabs').innerHTML = EXPL_ROOMS.map(r=>`<button class="${r.id===explRoom?'on':''}" data-r="${r.id}">${r.name}</button>`).join('');
   $('explTabs').querySelectorAll('[data-r]').forEach(b=>b.onclick = ()=>{ explRoom = b.dataset.r; renderExpl(); });
@@ -5556,9 +5564,9 @@ function chestStep(id){
         bs.forEach((x,j)=>{ if(j!==i){ x.classList.add('dim'); x.insertAdjacentHTML('beforeend', `<span class="prz">${bonusTxt(prizes[j])}</span>`); } }); }catch(e){ console.error(e); } go.disabled = false; }, 820); }); }};
 }
 function firstStep(R, r){
-  const t = (k,n,tag='') => `<div class="tile"><span class="ic">${ico(k,'icoL')}</span><span class="q">×${n}</span>${k==='gold'?'Ouro':ITEMS[k]?ITEMS[k].name:k}${tag?`<span class="tag">${tag}</span>`:''}</div>`;
+  const t = (k,n,tag='') => `<div class="tile"><span class="ic">${ico(k,'icoL')}</span><span class="q">×${n}</span>${k==='gold'?'Ouro':k==='dia'?'Diamantes':ITEMS[k]?ITEMS[k].name:k}${tag?`<span class="tag">${tag}</span>`:''}</div>`;
   const f = R.first || {}, items = Object.entries(f.items||{});
-  return {rib:'1ª Vez – Prêmios', title:'Primeira vitória!', html:`<div class="tiles">${f.gold?t('gold',f.gold):''}${items.map(([k,n])=>t(k,n)).join('')}${r.newCreature?`<div class="tile"><span class="ic"></span>${SPECIES[r.newCreature].name}<span class="tag">nova</span></div>`:''}${r.diamonds?t('dia',r.diamonds,'4★'):''}</div>`};
+  return {rib:'1ª Vez – Prêmios', title:'Primeira vitória!', html:`<div class="tiles">${f.gold?t('gold',f.gold):''}${items.map(([k,n])=>t(k,n)).join('')}${r.newCreature?`<div class="tile"><span class="ic"><img class="ico icoL" alt="" src="${((monImg((artOf(r.newCreature)||{}).id)||{}).src)||''}"></span>${SPECIES[r.newCreature].name}<span class="tag">nova</span></div>`:''}${r.diamonds?t('dia',r.diamonds,'4★'):''}</div>`};
 }
 // ===== Contadores (conquistas e evento diário) =====
 function achS(){ return save.ach || (save.ach = {claimed:{}, cnt:{}}); }
@@ -5804,7 +5812,8 @@ function renderOpt(){
   $('optSnd').textContent = SOUND.on ? 'Som: ligado' : 'Som: desligado'; $('optSnd').classList.toggle('on', SOUND.on);
 }
 // tela de resultado protegida: se algo falhar, ainda abre o resultado (nunca deixa a fase presa)
-function showResult(){ try{ showResultImpl(); }catch(err){ console.error(err); try{ $('rpop').hidden = true; $('resTitle').textContent = B && B.over==='vitoria' ? 'Vitória!' : 'Fim da batalha'; $('resInfo').textContent = ''; showSkills(null); $('res').hidden = false; }catch(e){} } }
+const fitResTitle = () => $('resTitle').classList.toggle('long', $('resTitle').textContent.length>9);
+function showResult(){ try{ showResultImpl(); fitResTitle(); }catch(err){ console.error(err); try{ $('rpop').hidden = true; $('resTitle').textContent = B && B.over==='vitoria' ? 'Vitória!' : 'Fim da batalha'; $('resInfo').textContent = ''; showSkills(null); $('res').hidden = false; }catch(e){} } }
 function showResultImpl(){
   if(!B || B.rewarded) return;
   if(B.custom) return showArenaResult();
