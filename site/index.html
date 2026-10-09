@@ -1544,6 +1544,27 @@ body.desk #zoomCtl{position:fixed;right:14px;bottom:12px;display:flex;align-item
 #skills{right:90px!important;bottom:8px!important;gap:10px!important;align-items:flex-end!important}
 #hint{right:92px!important}
 .sk .cost{top:-10px;right:-4px;z-index:2}
+
+/* ===== Combate v14 — animações: fila, Supremo pronto ===== */
+#order{position:absolute}
+.ord .oh::before{display:none}
+.ord .oh i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#b6ff7a,#2f9a2a);border-radius:3px}
+.ord.E .oh i{background:linear-gradient(#ff9a8a,#c8202a)}
+.ord{will-change:transform}
+/* energia cheia: estouro dourado uma vez + brilho contínuo */
+#combo.burst .bar{animation:enBurst .9s ease-out}
+#combo.burst .hexn{animation:hexBurst .9s cubic-bezier(.2,1.6,.4,1)}
+@keyframes enBurst{0%{box-shadow:0 0 0 0 #fff6c0,0 0 0 #ffd24a}25%{box-shadow:0 0 0 4px #fff6c0,0 0 30px #ffd24a;background:linear-gradient(#5a4a10,#2a2004)}100%{box-shadow:0 0 14px #7dff6a}}
+@keyframes hexBurst{0%{transform:translateY(-50%) scale(1)}35%{transform:translateY(-50%) scale(1.45) rotate(8deg);filter:brightness(1.8) drop-shadow(0 0 14px #ffe27a)}100%{transform:translateY(-50%) scale(1)}}
+/* botão do Supremo pronto: reflexo dourado passando + aro girando */
+.sk.full .hex .shine{background:linear-gradient(115deg,#fff0 35%,#fffbe0e6 48%,#fff0 62%) 0 0/260% 100%!important;animation:skSweep 1.6s linear infinite}
+@keyframes skSweep{from{background-position:120% 0}to{background-position:-60% 0}}
+.sk.full::before{content:"";position:absolute;left:50%;top:38px;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:50%;background:conic-gradient(from 0deg,#ffd24a00,#ffd24a 20%,#fff6c0 25%,#ffd24a00 40%,#ffd24a00 60%,#ffd24a 80%,#fff6c0 85%,#ffd24a00);
+  -webkit-mask:radial-gradient(circle,#0000 58%,#000 60%,#000 66%,#0000 68%);mask:radial-gradient(circle,#0000 58%,#000 60%,#000 66%,#0000 68%);animation:skRing 2.2s linear infinite;pointer-events:none;z-index:0}
+@keyframes skRing{to{transform:rotate(360deg)}}
+.sk.full{animation:skHop 1.2s ease-in-out infinite}
+@keyframes skHop{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){#combo.burst .bar,#combo.burst .hexn,.sk.full,.sk.full::before,.sk.full .hex .shine{animation:none!important}}
 </style>
 
 <div id="rot">Gire o celular para jogar deitado.</div>
@@ -3347,7 +3368,8 @@ function scaleOf(u){ return u.boss ? 1.45 : u.sub ? 1.05 : 0.85; }
 function render(ts){
   if(!bg) bg = drawBg();
   const sx = shake>0 ? (Math.random()-.5)*shake/30 : 0, sy = shake>0 ? (Math.random()-.5)*shake/30 : 0;
-  ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(bg,0,0); ctx.setTransform(K,0,0,K,sx*K,sy*K);
+  const cam = BS.ultCamera(); // Supremo: a câmera aproxima do atacante e volta no impacto
+  ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='#000'; ctx.fillRect(0,0,W*K,H*K); ctx.setTransform(K*cam.z,0,0,K*cam.z,(sx-cam.fx*(cam.z-1))*K,(sy-cam.fy*(cam.z-1))*K); ctx.drawImage(bg,0,0,W,H);
   if(!B){ return; }
   { const m = save.mount&&save.mount.cur; if(m){ ctx.save(); ctx.translate(165,445); ctx.scale(.7,.7); ctx.translate(-165,-445); drawRider(ctx,165,445,{mount:m}); ctx.restore(); } else { const pose = (intro && intro.items.some(i=>i.kind==='A') && intro.t<1000) || (anim && anim.ult && anim.ev.actor.side==='A' && anim.el<ULT_PRE+200) ? 4 : B.over==='vitoria' ? 5 : 3; drawTrainer(ctx,165,445,{h:pose===3?96:100, sprite:heroPose(pose)}); } } // treinador de costas, olhando a batalha
   drawVignette(); drawAmb();
@@ -3415,6 +3437,7 @@ function render(ts){
   if(curStage==='arena') drawArenaHead();
   for(const o of orbs){ if(o.t>=650) continue; ctx.save(); ctx.globalCompositeOperation='lighter'; const gr=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,16); gr.addColorStop(0,'#fff'); gr.addColorStop(.4,'#ffe27a'); gr.addColorStop(1,'#ffb00000'); ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(o.x,o.y,16,0,7); ctx.fill(); ctx.restore(); }
   if(flashW>0){ ctx.fillStyle=`rgba(255,255,255,${flashW/140*.45})`; ctx.fillRect(0,0,W,H); }
+  BS.drawUltOverlay(ts);
   for(const f of floaters) drawFloater(f);
   ctx.globalAlpha=1;
   if(vsIntro) drawVs();
@@ -3463,13 +3486,13 @@ function frameBody(ts){
   const dt = Math.min(50, ts-last); last = ts;
   if(B && !paused && !loading){
     const d = dt*speed;
-    for(const f of floaters){ f.life-=d; f.y-=d*(f.kind==='dmg'?0.03:0.04); } floaters = floaters.filter(f=>f.life>0);
+    for(const f of floaters){ f.life-=d; if(f.kind==='dmg'){ f.age=(f.age||0)+d; const q=Math.min(1,f.age/900), e=1-Math.pow(1-q,3); f.y=f.y0-f.rise*e; f.x=f.x0+f.drift*e; } else f.y-=d*0.04; } floaters = floaters.filter(f=>f.life>0);
     for(const b of bursts) b.t+=d; bursts = bursts.filter(b=>b.t<380); for(const b of beams) b.t+=d; beams = beams.filter(b=>b.t<620); if(shake>0) shake-=d; if(flashW>0) flashW-=d;
     for(const u of all(B)){ const v=vis(u); BS.animateHp(v, d); if(v.flash>0) v.flash-=d; if(v.kb>0) v.kb=Math.max(0,v.kb-d/240);
       if(v.hp<=0 && v.alpha>0){ v.dt=(v.dt||0)+d; // derrota: pisca, vira silhueta, afunda e some
         if(!v.puff && v.dt>260){ v.puff=1; const [px,py]=posOf(u); spark(px, py-30*scaleOf(u), ['#3a3550','#6a6488','#ffffff'], 16, {speed:.18, up:.05, r:7, life:700, g:-.0002, w:50, h:30}); if(u.side==='E') orbs.push({x:px, y:py-50*scaleOf(u), t:0, sx:px, sy:py-50*scaleOf(u)}); }
         if(v.dt>320) v.alpha=Math.max(0,1-(v.dt-320)/520); } }
-    ambTick(d);
+    ambTick(d); BS.update(d);
     for(const q of parts){ q.life-=d; q.x+=q.vx*d; q.y+=q.vy*d; q.vy+=q.g*d; q.rot+=q.vr*d; } parts = parts.filter(q=>q.life>0);
     for(const o of orbs){ o.t+=d; const k=Math.min(1,o.t/650), e=k*k*(3-2*k); o.x=o.sx+(ORB_TO[0]-o.sx)*e; o.y=o.sy+(ORB_TO[1]-o.sy)*e - Math.sin(k*Math.PI)*90; if(k<1 && Math.random()<.6) spark(o.x,o.y,'#ffe27a',1,{speed:.02,r:3,life:260,g:0}); if(k>=1 && !o.done){ o.done=1; spark(ORB_TO[0],ORB_TO[1],['#fff','#ffe27a','#7ae8ff'],10,{speed:.2,r:3,life:380,g:0}); } } orbs = orbs.filter(o=>o.t<700);
     if(comboT>0){ comboT-=d; if(comboT<=0) drawCombo(); }
@@ -3622,7 +3645,7 @@ function runAnim(d){
         { const ddx = hx-x0, ddy = hy-y0, dl = Math.hypot(ddx,ddy)||1; v.kbx = ddx/dl*(big?26:16); v.kby = ddy/dl*(big?12:8); v.kb = 1; }
         hitStop = Math.max(hitStop, big?110:55); { const F = tfx(sk.type), n = Math.round(F.n*(big?1.6:1)*(a.strong?1.2:1));
           spark(hx, hy-40*scaleOf(h.u), ['#fff', ...F.c], n, {shape:F.im, speed:big?.42:.3, up:F.up||0, r:big?6:4.5, life:520, g:F.g??.0006}); }
-        if(a.ult){ beams.push({x:hx, y:hy, c:TYPES[sk.type]||'#fff', t:0}); }
+        if(a.ult){ beams.push({x:hx, y:hy, c:TYPES[sk.type]||'#fff', t:0}); BS.ultImpact(hx, hy-40*scaleOf(h.u), TYPES[sk.type]||'#ffd24a'); }
         dmgFloat(hx, top, h.dmg, h.m===0?'imune':h.crit?'crit':h.m>1?'super':h.m<1?'inef':'', h.u.side, big || h.crit);
         bursts.push({x:hx, y:hy-40*scaleOf(h.u), c:TYPES[sk.type]||'#fff', t:0, big}); shake = Math.max(shake, big?260:120); if(big) flashW = 140; }
       else if(h.heal!=null){ sfx('heal'); dmgFloat(hx, top, h.heal, 'heal', h.u.side); }
@@ -3672,7 +3695,7 @@ function portrait(sp, face, form=0){
 const mmss = sec => `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
 function drawCombo(){
   [...document.querySelectorAll('#combo i')].forEach((el,i)=>el.classList.toggle('on', i < energy));
-  const full = energy>=ENERGY_MAX; $('combo').classList.toggle('full', full); document.querySelector('#combo .hexn').textContent = full ? '⚡' : energy;
+  const full = energy>=ENERGY_MAX; BS.energyFull(full); $('combo').classList.toggle('full', full); document.querySelector('#combo .hexn').textContent = full ? '⚡' : energy;
   const t = document.querySelector('#combo b'); t.hidden = !(combo && comboT>0); t.innerHTML = `<em>${combo}</em>Finalizar!`;
 }
 function setLog(){
@@ -3804,18 +3827,26 @@ class BattleSystem {
     if(!B) return;
     $('wave').textContent = `Ondas: ${B.wave+1}/${STAGES[B.stage].waves.length}`; $('wave').hidden = curStage==='arena';
     const ord = $('order'), pv = !!list, L = list ? [waiting, ...list] : this.getTurnQueue(6);
-    const old = new Map(); for(const el of ord.children) old.set(el.dataset.k, el.getBoundingClientRect());
-    ord.textContent = ''; const seen = {};
+    const old = new Map(), oldEl = new Map(), box0 = ord.getBoundingClientRect();
+    for(const el of ord.children){ if(el.classList.contains('gone')) continue; old.set(el.dataset.k, el.getBoundingClientRect()); oldEl.set(el.dataset.k, el); }
+    ord.textContent = ''; const seen = {}, hp0 = this.qHp || (this.qHp = new Map());
     L.forEach((u,i)=>{ const n = seen[u.id] = (seen[u.id]||0)+1, k = u.id+'#'+n;
       const d = document.createElement('div'); d.className = 'ord '+u.side+(i===0?' cur':'')+(pv&&i>0?' pv':''); d.dataset.k = k;
       d.append(faceC(u.sp, u.side==='A'?1:-1, u.form));
-      const hp = document.createElement('em'); hp.className = 'oh'; hp.style.setProperty('--q', Math.max(0,u.hp/u.st.hp)); d.append(hp);
+      const q = Math.max(0,u.hp/u.st.hp), hp = document.createElement('em'), bar = document.createElement('i'); hp.className = 'oh'; bar.style.width = (q*100)+'%'; hp.append(bar); d.append(hp);
+      const pq = hp0.get(u.id); if(pq!=null && Math.abs(pq-q)>.004 && !reduce) bar.animate([{width:(pq*100)+'%'},{width:(q*100)+'%'}], {duration:420, easing:'ease-out'}); if(!pv) hp0.set(u.id, q);
       if(i===0){ const s = document.createElement('span'); s.textContent = u.side==='A'?'Eu':'Inimigo'; d.append(s); }
       ord.append(d); });
     if(reduce) return;
+    // FLIP: cada retrato sai de onde estava e desliza até o lugar novo (sem pulo); novos entram por cima
+    const sc = box0.height ? ord.offsetHeight/box0.height : 1, ease = 'cubic-bezier(.22,.9,.24,1)';
     for(const el of ord.children){ const a = old.get(el.dataset.k), b = el.getBoundingClientRect();
-      if(a){ const dy = a.top-b.top; if(Math.abs(dy)>1) el.animate([{transform:`translateY(${dy}px)`},{transform:'none'}], {duration:260, easing:'cubic-bezier(.2,.8,.2,1)'}); }
-      else el.animate([{opacity:0, transform:'translateY(-14px) scale(.8)'},{opacity:1, transform:'none'}], {duration:240, easing:'ease-out'}); }
+      if(a){ const dy = (a.top-b.top)*sc, ds = a.width/b.width; if(Math.abs(dy)>1 || Math.abs(ds-1)>.02) el.animate([{transform:`translateY(${dy}px) scale(${ds})`},{transform:'none'}], {duration:340, easing:ease}); }
+      else el.animate([{opacity:0, transform:'translateY(-22px) scale(.7)'},{opacity:1, transform:'none'}], {duration:300, easing:ease, delay:60}); }
+    // quem saiu da fila (acabou de agir) some deslizando para baixo
+    for(const [k,el] of oldEl){ if([...ord.children].some(c=>c.dataset.k===k)) continue; const a = old.get(k);
+      const g = el.cloneNode(true); g.classList.add('gone'); g.style.cssText = `position:absolute;left:${(a.left-box0.left)*sc}px;top:${(a.top-box0.top)*sc}px;width:${a.width*sc}px;height:${a.height*sc}px;margin:0;pointer-events:none`;
+      ord.append(g); g.animate([{opacity:1, transform:'none'},{opacity:0, transform:'translateY(26px) scale(.85)'}], {duration:320, easing:'ease-in'}).onfinish = ()=>g.remove(); }
   }
   // ----- habilidades -----
   renderSkillPanel(u){
@@ -3874,16 +3905,47 @@ class BattleSystem {
     // aliado: cinema só com a barra de energia cheia (consome); inimigo: só chefes, de vez em quando
     let ult = isSup && !reduce && (u.side==='A' ? energy>=ENERGY_MAX : !!(u.boss||u.sub) && (B.actions - (B._lastUlt??-99)) >= 6);
     if(ult){ if(u.side==='A'){ energy = 0; drawCombo(); } else B._lastUlt = B.actions; }
-    sfx(ult ? 'ult' : 'whoosh');
+    sfx(ult ? 'ult' : 'whoosh'); if(ult) this.ultStart(u);
     anim = {ev, el:0, hit:false, ult, strong: !!(sk0 && (sk0.cd>=3 || (sk0.aoe && sk0.kind==='spec')))};
     this.renderTurnQueue();
   }
   // ----- feedback -----
   // etiquetas: Super! (×>1), Bom (normal), Inefetivo (×<1), Crítico, Imune; empilha no mesmo alvo
   spawnDamageText(x, y, n, kind, side, big){
-    const k = kind==='heal' ? 'heal' : kind || (side==='A' ? 'ally' : 'bom'), now = performance.now(), key = Math.round(x/40);
-    const L = (this.stack.get(key)||[]).filter(t=>now-t<520); const lift = L.length * (big?42:32); L.push(now); this.stack.set(key, L);
-    floaters.push({x: x + (L.length>1 ? (L.length%2?-14:14) : 0), y: y - lift, txt:(kind==='heal'?'+ ':'- ')+String(n).split('').join(' '), tag:DMG_STYLE[k].tag, st:DMG_STYLE[k], size: big?68:48, life:1300, kind:'dmg'});
+    const k = kind==='heal' ? 'heal' : kind || (side==='A' ? 'ally' : 'bom'), size = big?68:48, txt = (kind==='heal'?'+ ':'- ')+String(n).split('').join(' '), tag = DMG_STYLE[k].tag;
+    const w = size*.56*txt.length + (tag ? size*.36*tag.length : 0), h = size*.9;
+    // escadinha: cada número novo no mesmo lugar sobe um degrau e anda um pouco para o lado, até não encostar em nenhum outro
+    let x0 = x, y0 = y, step = 0; const box = f => ({l:f.x0-f.w/2, r:f.x0+f.w/2, t:f.y0-f.h/2, b:f.y0+f.h/2});
+    const hit = ()=>floaters.some(f=>f.kind==='dmg' && f.life>380 && (()=>{ const o = box(f); return x0-w/2 < o.r && x0+w/2 > o.l && y0-h/2 < o.b && y0+h/2 > o.t; })());
+    while(step<6 && hit()){ step++; y0 = y - step*h*.78; x0 = x + step*(side==='A'?-1:1)*Math.min(26, w*.12); }
+    floaters.push({x:x0, y:y0, x0, y0, w, h, rise: big?54:42, drift:(side==='A'?-1:1)*(8+step*3), txt, tag, st:DMG_STYLE[k], size, life:1300, kind:'dmg'});
+  }
+  // ----- Supremo: brilho quando a energia enche, câmera, faixas de cinema, linhas de velocidade e onda de impacto -----
+  energyFull(full){ if(full && !this.wasFull && B && !B.over){ const c = $('combo'); c.classList.remove('burst'); void c.offsetWidth; c.classList.add('burst'); setTimeout(()=>c.classList.remove('burst'), 1000); sfx('buff');
+      if(waiting) this.renderSkillPanel(waiting); } this.wasFull = full; }
+  ultCamera(){ const a = anim; if(!a || !a.ult || reduce) return {z:1, fx:0, fy:0};
+    const [x0,y0] = posOf(a.ev.actor), E = t=>t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+    const z = a.el < ULT_PRE ? 1 + .14*E(Math.min(1, a.el/ULT_PRE)) : 1 + .14*(1-E(Math.min(1,(a.el-ULT_PRE)/420)));
+    return {z, fx:x0, fy:y0-60}; }
+  ultStart(u){ if(reduce) return; const [x,y] = posOf(u); this.lines = 1; spark(x, y-50*scaleOf(u), ['#fffbe0','#ffe27a','#ffb02a','#ffffff'], 46, {speed:.42, up:.12, r:6, life:760, g:.0002, w:60, h:40}); }
+  ultImpact(x, y, c){ if(reduce) return; (this.waves || (this.waves = [])).push({x, y, c, t:0}, {x, y, c:'#ffffff', t:-90}); spark(x, y, ['#ffffff','#fff2a0',c], 34, {speed:.55, r:7, life:620, g:.0005}); }
+  update(d){ if(this.waves){ for(const w of this.waves) w.t += d; this.waves = this.waves.filter(w=>w.t<560); } }
+  drawUltOverlay(ts){
+    const a = anim, on = a && a.ult && !reduce;
+    ctx.save(); ctx.setTransform(K,0,0,K,0,0);
+    for(const w of (this.waves||[])){ if(w.t<0) continue; const q = w.t/560, R = 40 + q*260; ctx.globalAlpha = (1-q)*.9; ctx.lineWidth = 14*(1-q)+2; ctx.strokeStyle = w.c;
+      ctx.beginPath(); ctx.ellipse(w.x, w.y+20, R, R*.42, 0, 0, 7); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    if(on){ const pre = a.el < ULT_PRE, p = pre ? 0 : Math.min(1,(a.el-ULT_PRE)/DUR), inQ = Math.min(1, a.el/220), outQ = p>.8 ? (p-.8)/.2 : 0, bh = 54*inQ*(1-outQ);
+      // linhas de velocidade saindo do atacante durante a preparação
+      if(pre){ const [x0,y0] = posOf(a.ev.actor), cy = y0-60, k = Math.min(1, a.el/200); ctx.save(); ctx.globalCompositeOperation = 'lighter';
+        for(let i=0;i<34;i++){ const an = i*0.1848 + Math.floor(ts/60)*0.37, r0 = 130 + ((i*53 + ts*.6) % 90), r1 = r0 + 160 + (i%5)*40;
+          ctx.strokeStyle = `rgba(255,236,170,${.22*k})`; ctx.lineWidth = 2 + (i%3); ctx.beginPath(); ctx.moveTo(x0+Math.cos(an)*r0, cy+Math.sin(an)*r0*.7); ctx.lineTo(x0+Math.cos(an)*r1, cy+Math.sin(an)*r1*.7); ctx.stroke(); }
+        ctx.restore(); }
+      // faixas pretas de cinema em cima e embaixo, com fio dourado
+      if(bh>0){ ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,bh); ctx.fillRect(0,H-bh,W,bh);
+        const g = ctx.createLinearGradient(0,0,W,0); g.addColorStop(0,'#ffd24a00'); g.addColorStop(.5,'#ffd24a'); g.addColorStop(1,'#ffd24a00'); ctx.fillStyle = g; ctx.fillRect(0,bh-2,W,2); ctx.fillRect(0,H-bh,W,2); } }
+    ctx.restore();
   }
   // barra de vida com rastro: o pedaço perdido espera um instante e depois esvazia devagar
   animateHp(v, d){ if(v.barHold>0){ v.barHold -= d; return; } v.bar += (v.hp-v.bar)*Math.min(1,d/260); if(Math.abs(v.bar-v.hp)<.5) v.bar = v.hp; }
